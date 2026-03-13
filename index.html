@@ -315,7 +315,12 @@
             }
 
             hideError();
-            alert(`로그인 시도: ${username}`);
+
+            if (username === '111' && password === '111') {
+                window.location.href = 'https://www.naver.com';
+            } else {
+                showError('아이디 또는 비밀번호가 올바르지 않습니다.');
+            }
         });
 
         function showError(msg) {
