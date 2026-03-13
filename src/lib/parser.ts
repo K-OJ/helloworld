@@ -63,7 +63,7 @@ export async function parseCSV(file: File, mapping?: ColumnMapping): Promise<Par
     Papa.parse<Record<string, unknown>>(text, {
       header: true,
       skipEmptyLines: true,
-      chunk(results) {
+      chunk(results: Papa.ParseResult<Record<string, unknown>>) {
         if (!headerValidated && results.meta.fields) {
           if (!mapping) {
             const err = validateColumns(results.meta.fields);
@@ -86,7 +86,7 @@ export async function parseCSV(file: File, mapping?: ColumnMapping): Promise<Par
       complete() {
         resolve({ records, skipped_rows, errors: [] });
       },
-      error(err) {
+      error(err: Error) {
         resolve({ records: [], skipped_rows: 0, errors: [err.message] });
       },
     });
