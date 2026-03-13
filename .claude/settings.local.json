@@ -40,7 +40,11 @@
       "Bash(cd \"C:\\\\권오진\\\\claude_work\\\\qa-dashboard\" && NODE_TLS_REJECT_UNAUTHORIZED=0 npx shadcn@latest add card table badge progress tabs select --yes 2>&1)",
       "Bash(cd \"C:\\\\권오진\\\\claude_work\\\\qa-dashboard\" && npx tsc --noEmit 2>&1)",
       "WebFetch(domain:helloworld-mzwb1nk2t-k-ojs-projects.vercel.app)",
-      "Bash(cd \"C:/권오진/claude_work\" && rm -rf api client server node_modules .github && rm -f package.json package-lock.json settings.json vercel.json)"
+      "Bash(cd \"C:/권오진/claude_work\" && rm -rf api client server node_modules .github && rm -f package.json package-lock.json settings.json vercel.json)",
+      "Bash(cd \"C:/권오진/claude_work\" && mv qa-dashboard/* qa-dashboard/.[!.]* . 2>/dev/null; echo \"done\")",
+      "Bash(cd \"C:/권오진/claude_work\" && rmdir qa-dashboard && ls src/)",
+      "Bash(cd \"C:/권오진/claude_work\" && mv qa-dashboard/src . && rmdir qa-dashboard && ls src/)",
+      "Bash(cd \"C:/권오진/claude_work\" && rm -rf qa-dashboard && ls src/)"
     ]
   }
 }
