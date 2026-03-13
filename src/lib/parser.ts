@@ -53,12 +53,14 @@ export async function parseCSV(file: File, mapping?: ColumnMapping): Promise<Par
     return { records: [], skipped_rows: 0, errors: [`파일 크기가 50MB를 초과합니다 (${(file.size / 1024 / 1024).toFixed(1)}MB)`] };
   }
 
+  const text = await file.text();
+
   return new Promise((resolve) => {
     const records: PrescriptionRecord[] = [];
     let skipped_rows = 0;
     let headerValidated = false;
 
-    Papa.parse<Record<string, unknown>>(file, {
+    Papa.parse<Record<string, unknown>>(text, {
       header: true,
       skipEmptyLines: true,
       chunk(results) {
