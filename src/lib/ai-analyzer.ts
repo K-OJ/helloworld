@@ -10,7 +10,7 @@ const AiAnalysisSchema = z.object({
       drug_id: z.string(),
       drug_name: z.string(),
       classification: z.enum(['data_error', 'market_trend', 'seasonal', 'policy_change', 'unknown']),
-      confidence: z.number().min(0).max(1),
+      confidence: z.number(),
       explanation: z.string(),
       recommended_action: z.string(),
     })
