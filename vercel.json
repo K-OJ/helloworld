@@ -1,5 +1,1 @@
-{
-  "buildCommand": "cd qa-dashboard && npm install && npm run build",
-  "outputDirectory": "qa-dashboard/.next",
-  "framework": "nextjs"
-}
+{}
