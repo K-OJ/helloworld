@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status 2>&1)",
+      "Bash(cd \"C:\\\\권오진\\\\claude_work\" && \"/c/Program Files/GitHub CLI/gh.exe\" repo create helloworld --public --source=. --remote=origin --push 2>&1)",
+      "Bash(start \"C:\\\\권오진\\\\claude_work\\\\index.html\")",
+      "Bash(cd \"C:\\\\권오진\\\\claude_work\" && \"/c/Program Files/GitHub CLI/gh.exe\" api repos/K-OJ/helloworld/pages --method POST --field source='{\"branch\":\"master\",\"path\":\"/\"}' 2>&1)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" api repos/K-OJ/helloworld/pages 2>&1)",
+      "Bash(cd \"C:\\\\권오진\\\\claude_work\" && gh repo view K-OJ/helloworld --json name,url,defaultBranchRef 2>&1)",
+      "Bash(cd \"C:\\\\권오진\\\\claude_work\" && gh api repos/K-OJ/helloworld/pages 2>&1)",
+      "Bash(wc -l /c/권오진/claude_work/*.html)",
+      "Bash(rm index.html main.html intro.html analysis.html && git add -A && git commit -m \"refactor: 기존 정적 HTML 파일 제거\")"
+    ]
+  }
+}
