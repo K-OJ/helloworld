@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { UploadResult } from '@/lib/types';
+import type { UploadResult, ColumnMapping } from '@/lib/types';
 
 export type UploadStatus = 'idle' | 'uploading' | 'success' | 'error';
 
@@ -12,7 +12,7 @@ export function useFileUpload() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<UploadResult | null>(null);
 
-  async function upload() {
+  async function upload(mapping?: ColumnMapping) {
     if (!baselineFile || !targetFile) {
       setError('전월 및 당월 파일을 모두 선택해 주세요.');
       return;
@@ -26,6 +26,9 @@ export function useFileUpload() {
       const formData = new FormData();
       formData.append('baseline', baselineFile);
       formData.append('target', targetFile);
+      if (mapping) {
+        formData.append('mapping', JSON.stringify(mapping));
+      }
 
       const res = await fetch('/api/upload', { method: 'POST', body: formData });
       const data = await res.json();

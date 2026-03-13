@@ -4,13 +4,17 @@ import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { FileDropzone } from '@/components/upload/FileDropzone';
+import { ColumnMapper } from '@/components/upload/ColumnMapper';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import { AnomalyTable } from '@/components/dashboard/AnomalyTable';
 import { ChangeChart } from '@/components/dashboard/ChangeChart';
 import { AiInsightPanel } from '@/components/dashboard/AiInsightPanel';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
-import type { AiAnalysisResult } from '@/lib/types';
+import { readFileHeaders } from '@/lib/read-headers';
+import type { AiAnalysisResult, ColumnMapping } from '@/lib/types';
+
+type Step = 'upload' | 'mapping' | 'results';
 
 export default function DashboardPage() {
   const {
@@ -18,14 +22,34 @@ export default function DashboardPage() {
     status, error, result, upload, reset,
   } = useFileUpload();
 
+  const [step, setStep] = useState<Step>('upload');
+  const [headers, setHeaders] = useState<string[]>([]);
   const [aiResults, setAiResults] = useState<Map<string, AiAnalysisResult>>(new Map());
 
   function handleAiResults(results: Map<string, AiAnalysisResult>) {
     setAiResults(results);
   }
 
+  async function handleNext() {
+    if (!baselineFile) return;
+    const h = await readFileHeaders(baselineFile);
+    setHeaders(h);
+    setStep('mapping');
+  }
+
+  async function handleMappingConfirm(mapping: ColumnMapping) {
+    setStep('results');
+    await upload(mapping);
+  }
+
+  function handleBack() {
+    setStep('upload');
+  }
+
   function handleReset() {
     reset();
+    setStep('upload');
+    setHeaders([]);
     setAiResults(new Map());
   }
 
@@ -37,11 +61,11 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-xl font-bold text-gray-900">
-                📊 Auto-QA Dashboard
+                Auto-QA Dashboard
               </h1>
               <p className="text-sm text-gray-500">월간 제약 데이터 정합성 AI 자동 검수</p>
             </div>
-            {result && (
+            {(step === 'mapping' || step === 'results') && (
               <Button variant="outline" size="sm" onClick={handleReset}>
                 새로 검수하기
               </Button>
@@ -52,8 +76,8 @@ export default function DashboardPage() {
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
 
-        {/* Upload Phase */}
-        {!result && (
+        {/* Upload Step */}
+        {step === 'upload' && (
           <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-5">
             <div>
               <h2 className="text-lg font-semibold text-gray-800">데이터 업로드</h2>
@@ -68,30 +92,24 @@ export default function DashboardPage() {
                 description="이전 달 처방 데이터를 업로드하세요"
                 file={baselineFile}
                 onFileSelect={setBaselineFile}
-                disabled={status === 'uploading'}
+                disabled={false}
               />
               <FileDropzone
                 label="당월 데이터 (검수 대상)"
                 description="이번 달 배포 예정 데이터를 업로드하세요"
                 file={targetFile}
                 onFileSelect={setTargetFile}
-                disabled={status === 'uploading'}
+                disabled={false}
               />
             </div>
 
-            {error && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
-                <strong>오류:</strong> {error}
-              </div>
-            )}
-
             <div className="flex items-center gap-3">
               <Button
-                onClick={upload}
-                disabled={!baselineFile || !targetFile || status === 'uploading'}
+                onClick={handleNext}
+                disabled={!baselineFile || !targetFile}
                 className="min-w-32"
               >
-                {status === 'uploading' ? '분석 중...' : '🔍 검수 시작'}
+                다음: 컬럼 매핑
               </Button>
               <span className="text-xs text-gray-400">CSV, XLSX, XLS 파일 지원 · 최대 50MB</span>
             </div>
@@ -106,53 +124,79 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Results Phase */}
-        {result && (
-          <div className="space-y-5">
-            {/* Summary */}
-            <div className="rounded-2xl border bg-white p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-800 mb-4">검수 결과 요약</h2>
-              <SummaryCards
-                total={result.summary.total}
-                normal={result.summary.normal}
-                warning={result.summary.warning}
-                danger={result.summary.danger}
-                baselinePeriod={result.baseline_period}
-                targetPeriod={result.target_period}
-              />
-            </div>
+        {/* Mapping Step */}
+        {step === 'mapping' && (
+          <ColumnMapper
+            headers={headers}
+            onConfirm={handleMappingConfirm}
+            onBack={handleBack}
+          />
+        )}
 
-            {/* Skipped rows notice */}
-            {(result.skipped_rows.baseline > 0 || result.skipped_rows.target > 0) && (
-              <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
-                ⚠️ 파싱 제외된 행: 전월 {result.skipped_rows.baseline}건, 당월 {result.skipped_rows.target}건
-                (drug_id 누락 또는 비정상 처방량)
+        {/* Results Step */}
+        {step === 'results' && (
+          <div className="space-y-5">
+            {/* Loading / Error */}
+            {status === 'uploading' && (
+              <div className="rounded-2xl border bg-white p-10 shadow-sm text-center text-sm text-gray-500">
+                분석 중...
               </div>
             )}
 
-            {/* AI Analysis */}
-            <AiInsightPanel items={result.items} onResults={handleAiResults} />
-
-            {/* Detail Tabs */}
-            <div className="rounded-2xl border bg-white p-6 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-800">상세 검수 결과</h2>
-                <ReportDownloadButton uploadResult={result} aiResults={aiResults} />
+            {status === 'error' && error && (
+              <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+                <strong>오류:</strong> {error}
               </div>
+            )}
 
-              <Tabs defaultValue="table">
-                <TabsList className="mb-4">
-                  <TabsTrigger value="table">📋 테이블 뷰</TabsTrigger>
-                  <TabsTrigger value="chart">📈 차트 뷰</TabsTrigger>
-                </TabsList>
-                <TabsContent value="table">
-                  <AnomalyTable items={result.items} aiResults={aiResults} />
-                </TabsContent>
-                <TabsContent value="chart">
-                  <ChangeChart items={result.items} />
-                </TabsContent>
-              </Tabs>
-            </div>
+            {result && (
+              <>
+                {/* Summary */}
+                <div className="rounded-2xl border bg-white p-6 shadow-sm">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4">검수 결과 요약</h2>
+                  <SummaryCards
+                    total={result.summary.total}
+                    normal={result.summary.normal}
+                    warning={result.summary.warning}
+                    danger={result.summary.danger}
+                    baselinePeriod={result.baseline_period}
+                    targetPeriod={result.target_period}
+                  />
+                </div>
+
+                {/* Skipped rows notice */}
+                {(result.skipped_rows.baseline > 0 || result.skipped_rows.target > 0) && (
+                  <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
+                    파싱 제외된 행: 전월 {result.skipped_rows.baseline}건, 당월 {result.skipped_rows.target}건
+                    (약품 코드 누락 또는 비정상 처방량)
+                  </div>
+                )}
+
+                {/* AI Analysis */}
+                <AiInsightPanel items={result.items} onResults={handleAiResults} />
+
+                {/* Detail Tabs */}
+                <div className="rounded-2xl border bg-white p-6 shadow-sm">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-800">상세 검수 결과</h2>
+                    <ReportDownloadButton uploadResult={result} aiResults={aiResults} />
+                  </div>
+
+                  <Tabs defaultValue="table">
+                    <TabsList className="mb-4">
+                      <TabsTrigger value="table">테이블 뷰</TabsTrigger>
+                      <TabsTrigger value="chart">차트 뷰</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="table">
+                      <AnomalyTable items={result.items} aiResults={aiResults} />
+                    </TabsContent>
+                    <TabsContent value="chart">
+                      <ChangeChart items={result.items} />
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              </>
+            )}
           </div>
         )}
       </main>

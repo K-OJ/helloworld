@@ -50,6 +50,14 @@ export interface QaReport {
   items: (AnomalyItem & { ai_analysis?: AiAnalysisResult })[];
 }
 
+export interface ColumnMapping {
+  drug_id: string;
+  drug_name: string;
+  hospital_code: string;
+  prescription_volume: string;
+  date: string;
+}
+
 export interface ParseResult {
   records: PrescriptionRecord[];
   skipped_rows: number;

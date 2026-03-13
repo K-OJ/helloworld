@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { parseFile } from '@/lib/parser';
 import { runRuleEngine, extractPeriod } from '@/lib/rule-engine';
-import type { UploadResult } from '@/lib/types';
+import type { UploadResult, ColumnMapping } from '@/lib/types';
 
 export const runtime = 'nodejs';
 
@@ -18,9 +18,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const mappingRaw = formData.get('mapping');
+    const mapping: ColumnMapping | undefined = mappingRaw
+      ? (JSON.parse(mappingRaw as string) as ColumnMapping)
+      : undefined;
+
     const [baselineResult, targetResult] = await Promise.all([
-      parseFile(baselineFile),
-      parseFile(targetFile),
+      parseFile(baselineFile, mapping),
+      parseFile(targetFile, mapping),
     ]);
 
     if (baselineResult.errors.length > 0) {
