@@ -1,3 +1,5 @@
 node_modules/
 dist/
 .env
+qa-dashboard/.next
+qa-dashboard/node_modules
