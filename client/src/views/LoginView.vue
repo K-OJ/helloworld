@@ -66,7 +66,7 @@ async function handleLogin() {
   if (!password.value) { errorMsg.value = '비밀번호를 입력해주세요.'; return }
 
   try {
-    const res = await fetch('http://localhost:3000/api/auth/login', {
+    const res = await fetch('/api/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: username.value, password: password.value }),
