@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import type { AnomalyItem, AiAnalysisResult } from '@/lib/types';
@@ -48,41 +49,32 @@ export function AiInsightPanel({ items, onResults, onDemoModeChange }: AiInsight
       setIsMock(mock);
       onDemoModeChange?.(mock);
 
+      // mock/실제 모두 map에 등록 (mock은 데모 배지로 구분)
       const map = new Map<string, AiAnalysisResult>();
       const classCounts: Record<string, number> = {};
 
-      if (!mock) {
-        // 실제 AI 결과만 map에 등록
-        for (const r of results) {
-          map.set(r.drug_id, r);
-          classCounts[r.classification] = (classCounts[r.classification] ?? 0) + 1;
-        }
-        for (const item of items) {
-          const byId = results.find((r) => r.drug_id === item.drug_id);
-          if (byId) {
-            map.set(`${item.drug_id}__${item.hospital_code}`, byId);
-          }
-        }
-      } else {
-        // Demo Mode: 분류 카운트만 계산하고 map은 비움 (테이블에서 ⚠️ 표시)
-        for (const r of results) {
-          classCounts[r.classification] = (classCounts[r.classification] ?? 0) + 1;
+      for (const r of results) {
+        classCounts[r.classification] = (classCounts[r.classification] ?? 0) + 1;
+        map.set(r.drug_id, r);
+      }
+      for (const item of items) {
+        const byId = results.find((r) => r.drug_id === item.drug_id);
+        if (byId) {
+          map.set(`${item.drug_id}__${item.hospital_code}`, byId);
         }
       }
 
-      // 주요 발견 사항 (실제 AI 결과일 때만)
-      if (!mock) {
-        const findings = items
-          .filter((i) => i.severity !== 'normal')
-          .map((i) => ({ item: i, ai: map.get(`${i.drug_id}__${i.hospital_code}`) }))
-          .filter((f): f is { item: AnomalyItem; ai: AiAnalysisResult } => !!f.ai)
-          .sort((a, b) => {
-            if (a.item.severity !== b.item.severity) return a.item.severity === 'danger' ? -1 : 1;
-            return b.ai.confidence - a.ai.confidence;
-          })
-          .slice(0, 3);
-        setTopFindings(findings);
-      }
+      // 주요 발견 사항 (위험 > 경고, 신뢰도 순 상위 3건)
+      const findings = items
+        .filter((i) => i.severity !== 'normal')
+        .map((i) => ({ item: i, ai: map.get(`${i.drug_id}__${i.hospital_code}`) }))
+        .filter((f): f is { item: AnomalyItem; ai: AiAnalysisResult } => !!f.ai)
+        .sort((a, b) => {
+          if (a.item.severity !== b.item.severity) return a.item.severity === 'danger' ? -1 : 1;
+          return b.ai.confidence - a.ai.confidence;
+        })
+        .slice(0, 3);
+      setTopFindings(findings);
 
       setSummary(classCounts);
       onResults(map);
@@ -143,9 +135,25 @@ export function AiInsightPanel({ items, onResults, onDemoModeChange }: AiInsight
 
       {status === 'done' && summary && (
         <>
-          {isMock && errorDetail && (
-            <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-500">
-              <span className="font-mono break-all">{errorDetail}</span>
+          {/* Demo Mode 안내 배너 */}
+          {isMock && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800 flex items-start gap-2">
+              <span className="text-base leading-none">⚠️</span>
+              <div>
+                <strong>크레딧 부족 — 예측 데이터로 표시 중</strong>
+                <p className="mt-0.5 text-amber-700">
+                  {errorDetail ?? 'Anthropic API 크레딧이 부족합니다.'}{' '}
+                  <a
+                    href="https://console.anthropic.com/settings/billing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-0.5 font-semibold underline hover:text-amber-900"
+                  >
+                    크레딧 충전하기 <ExternalLink className="h-3 w-3" />
+                  </a>
+                </p>
+                <p className="mt-0.5 text-amber-600">아래 결과는 규칙 기반 예측값이며 실제 AI 분석 결과가 아닙니다.</p>
+              </div>
             </div>
           )}
 
@@ -159,10 +167,15 @@ export function AiInsightPanel({ items, onResults, onDemoModeChange }: AiInsight
             ))}
           </div>
 
-          {/* 주요 발견 사항 (실제 AI 결과일 때만) */}
-          {!isMock && topFindings.length > 0 && (
+          {/* 주요 발견 사항 (상위 3건, mock일 때 "예측" 배지 표시) */}
+          {topFindings.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-700">주요 발견 사항 (즉각 조치 필요)</p>
+              <p className="text-sm font-semibold text-gray-700">
+                주요 발견 사항 (즉각 조치 필요)
+                {isMock && (
+                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">예측</span>
+                )}
+              </p>
               {topFindings.map(({ item, ai }, i) => (
                 <div key={i} className={`rounded-lg border p-3 text-sm ${item.severity === 'danger' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
                   <div className="flex items-start justify-between gap-2">
@@ -178,7 +191,19 @@ export function AiInsightPanel({ items, onResults, onDemoModeChange }: AiInsight
                     </span>
                   </div>
                   <p className="mt-1.5 text-gray-600">{ai.explanation}</p>
-                  <p className="mt-1 text-blue-700 font-medium">→ {ai.recommended_action}</p>
+                  <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
+                    <p className="text-blue-700 font-medium">→ {ai.recommended_action}</p>
+                    {ai.action_url && ai.action_label && (
+                      <a
+                        href={ai.action_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors shrink-0"
+                      >
+                        {ai.action_label} <ExternalLink className="h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

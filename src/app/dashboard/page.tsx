@@ -12,7 +12,7 @@ import { AnomalyTable } from '@/components/dashboard/AnomalyTable';
 import { AnomalyBarChart } from '@/components/dashboard/AnomalyBarChart';
 import { ChangeChart } from '@/components/dashboard/ChangeChart';
 import { AiInsightPanel } from '@/components/dashboard/AiInsightPanel';
-import { QaChatbot } from '@/components/QaChatbot';
+import { FloatingChat } from '@/components/FloatingChat';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { readFileHeaders } from '@/lib/read-headers';
@@ -48,7 +48,7 @@ export default function DashboardPage() {
 
   function handleDemoModeChange(demo: boolean) {
     setIsDemoMode(demo);
-    setAnalysisFailed(demo);
+    // demo 모드는 mock 데이터가 있으므로 analysisFailed는 건드리지 않음
   }
 
   async function handleNext() {
@@ -252,6 +252,7 @@ export default function DashboardPage() {
                         items={result.items}
                         aiResults={aiResults}
                         analysisFailed={analysisFailed}
+                        isMock={isDemoMode}
                         onRetryItem={handleRetryItem}
                       />
                     </TabsContent>
@@ -261,10 +262,8 @@ export default function DashboardPage() {
                   </Tabs>
                 </motion.div>
 
-                {/* AI 추가 질문 */}
-                <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
-                  <QaChatbot anomaliesData={{ items: result.items, aiResults }} />
-                </motion.div>
+                {/* Floating AI 챗봇 */}
+                <FloatingChat items={result.items} aiResults={aiResults} />
               </>
             )}
           </div>

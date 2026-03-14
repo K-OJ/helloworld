@@ -15,6 +15,7 @@ interface AnomalyTableProps {
   items: AnomalyItem[];
   aiResults: Map<string, AiAnalysisResult>;
   analysisFailed?: boolean;
+  isMock?: boolean;
   onRetryItem?: (item: AnomalyItem) => void;
 }
 
@@ -24,7 +25,7 @@ type Override =
   | { status: 'approved' }
   | { status: 'modified'; classification: AiClassification };
 
-export function AnomalyTable({ items, aiResults, analysisFailed, onRetryItem }: AnomalyTableProps) {
+export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetryItem }: AnomalyTableProps) {
   const [severityFilter, setSeverityFilter] = useState<Severity | 'all'>('all');
   const [sortKey, setSortKey] = useState<SortKey>('absolute_change');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -161,6 +162,9 @@ export function AnomalyTable({ items, aiResults, analysisFailed, onRetryItem }: 
                             <span className="inline-block mb-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">수정됨</span>
                           )}
                           <div>
+                            {isMock && (
+                              <span className="inline-block mr-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">예측</span>
+                            )}
                             {override?.status === 'modified' ? (
                               <>
                                 <span className="line-through text-gray-400">{AI_CLASSIFICATION_LABELS[ai.classification]}</span>
