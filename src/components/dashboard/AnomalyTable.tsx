@@ -22,6 +22,7 @@ export function AnomalyTable({ items, aiResults }: AnomalyTableProps) {
   const [sortKey, setSortKey] = useState<SortKey>('absolute_change');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(1);
+  const [expandedKey, setExpandedKey] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     let data = severityFilter === 'all' ? items : items.filter((i) => i.severity === severityFilter);
@@ -99,11 +100,16 @@ export function AnomalyTable({ items, aiResults }: AnomalyTableProps) {
                 </TableCell>
               </TableRow>
             ) : (
-              pageItems.map((item, idx) => {
+              pageItems.flatMap((item, idx) => {
                 const key = `${item.drug_id}__${item.hospital_code}`;
                 const ai = aiResults.get(key);
-                return (
-                  <TableRow key={idx} className="hover:bg-gray-50">
+                const isExpanded = expandedKey === key;
+                return [
+                  <TableRow
+                    key={idx}
+                    className={`hover:bg-gray-50 cursor-pointer ${isExpanded ? 'bg-blue-50' : ''}`}
+                    onClick={() => setExpandedKey(isExpanded ? null : key)}
+                  >
                     <TableCell>
                       <div className="font-medium">{item.drug_name || '-'}</div>
                       <div className="text-xs text-gray-400">{item.drug_id}</div>
@@ -122,14 +128,31 @@ export function AnomalyTable({ items, aiResults }: AnomalyTableProps) {
                         <div>
                           <span className="font-medium text-gray-700">{AI_CLASSIFICATION_LABELS[ai.classification]}</span>
                           <span className="ml-1 text-gray-400">({Math.round(ai.confidence * 100)}%)</span>
-                          <p className="mt-0.5 text-gray-500 line-clamp-2">{ai.explanation}</p>
+                          <p className="mt-0.5 text-gray-500 line-clamp-1">{ai.explanation}</p>
+                          <span className="text-blue-400 text-xs">{isExpanded ? '▲ 접기' : '▼ 상세보기'}</span>
                         </div>
                       ) : (
                         <span className="text-gray-300">-</span>
                       )}
                     </TableCell>
-                  </TableRow>
-                );
+                  </TableRow>,
+                  ...(isExpanded && ai ? [
+                    <TableRow key={`${idx}-expanded`} className="bg-blue-50 border-b border-blue-100">
+                      <TableCell colSpan={7} className="py-3 px-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                          <div>
+                            <p className="font-medium text-gray-700 mb-1">📋 AI 분석 원인</p>
+                            <p className="text-gray-600">{ai.explanation}</p>
+                          </div>
+                          <div>
+                            <p className="font-medium text-gray-700 mb-1">✅ 권장 조치</p>
+                            <p className="text-blue-700 bg-blue-50 rounded p-2 border border-blue-100">{ai.recommended_action}</p>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>,
+                  ] : []),
+                ];
               })
             )}
           </TableBody>

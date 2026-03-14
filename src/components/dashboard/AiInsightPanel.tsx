@@ -19,6 +19,7 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
   const [progress, setProgress] = useState(0);
   const [summary, setSummary] = useState<Record<string, number> | null>(null);
   const [isMock, setIsMock] = useState(false);
+  const [topFindings, setTopFindings] = useState<Array<{ item: AnomalyItem; ai: AiAnalysisResult }>>([]);
 
   const toAnalyze = items.filter((i) => i.severity !== 'normal');
 
@@ -56,6 +57,18 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
         }
       }
 
+      // Top findings: danger items first, then warning, sorted by confidence desc
+      const findings = items
+        .filter((i) => i.severity !== 'normal')
+        .map((i) => ({ item: i, ai: map.get(`${i.drug_id}__${i.hospital_code}`) }))
+        .filter((f): f is { item: AnomalyItem; ai: AiAnalysisResult } => !!f.ai)
+        .sort((a, b) => {
+          if (a.item.severity !== b.item.severity) return a.item.severity === 'danger' ? -1 : 1;
+          return b.ai.confidence - a.ai.confidence;
+        })
+        .slice(0, 3);
+
+      setTopFindings(findings);
       setIsMock(mock);
       setSummary(classCounts);
       onResults(map);
@@ -89,7 +102,7 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
           </Button>
         )}
         {status === 'done' && (
-          <Button variant="outline" onClick={() => { setStatus('idle'); setSummary(null); setIsMock(false); }} className="shrink-0">
+          <Button variant="outline" onClick={() => { setStatus('idle'); setSummary(null); setIsMock(false); setTopFindings([]); }} className="shrink-0">
             재분석
           </Button>
         )}
@@ -116,6 +129,8 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
               AI API 연결 실패로 예시 분석 결과를 표시합니다. 실제 분석 결과와 다를 수 있습니다.
             </div>
           )}
+
+          {/* 원인 분류 요약 */}
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
             {Object.entries(summary).map(([cls, cnt]) => (
               <div key={cls} className="rounded-lg bg-white border p-2 text-center">
@@ -124,6 +139,31 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
               </div>
             ))}
           </div>
+
+          {/* 주요 발견 사항 (경영진/유관부서 공유용) */}
+          {topFindings.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-semibold text-gray-700">주요 발견 사항 (즉각 조치 필요)</p>
+              {topFindings.map(({ item, ai }, i) => (
+                <div key={i} className={`rounded-lg border p-3 text-sm ${item.severity === 'danger' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 min-w-0">
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium mr-2 ${item.severity === 'danger' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {item.severity === 'danger' ? '위험' : '경고'}
+                      </span>
+                      <span className="font-medium text-gray-800">{item.drug_name || item.drug_id}</span>
+                      <span className="ml-2 text-xs text-gray-500">{item.hospital_code} · 변동률 {item.change_pct > 0 ? '+' : ''}{item.change_pct.toFixed(1)}%</span>
+                    </div>
+                    <span className="shrink-0 text-xs text-gray-500">
+                      {AI_CLASSIFICATION_LABELS[ai.classification]} · 확신도 {Math.round(ai.confidence * 100)}%
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-gray-600">{ai.explanation}</p>
+                  <p className="mt-1 text-blue-700 font-medium">→ {ai.recommended_action}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>
