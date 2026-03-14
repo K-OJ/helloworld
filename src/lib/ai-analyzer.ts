@@ -69,6 +69,61 @@ async function analyzeBatch(batch: AnomalyItem[]): Promise<AiAnalysisResult[]> {
   return result.analyses;
 }
 
+const MOCK_EXPLANATIONS: Record<string, { explanation: string; recommended_action: string }> = {
+  data_error: {
+    explanation: '처방량이 극단적으로 변동하여 데이터 입력 오류 가능성이 높습니다. 단일 기관에서만 발생한 급격한 변화로 시스템 오류나 중복 입력이 의심됩니다.',
+    recommended_action: '원본 처방 데이터와 대조 검증 후 오류 여부를 확인하십시오.',
+  },
+  market_trend: {
+    explanation: '여러 기관에서 유사한 방향의 처방량 변화가 관찰됩니다. 경쟁 약품 출시 또는 신규 처방 가이드라인 적용에 따른 시장 변화로 추정됩니다.',
+    recommended_action: '동일 성분 경쟁 약품의 시장 점유율 변화를 확인하십시오.',
+  },
+  seasonal: {
+    explanation: '계절적 요인에 의한 처방량 변동입니다. 해당 약품의 적응증이 특정 계절에 집중되는 패턴을 보입니다.',
+    recommended_action: '전년도 동기간 데이터와 비교하여 계절성 패턴을 확인하십시오.',
+  },
+  policy_change: {
+    explanation: '급여 기준 변경 또는 처방 가이드라인 개정과 일치하는 변동 패턴입니다. 보험 적용 범위 조정이 처방량에 직접적인 영향을 준 것으로 보입니다.',
+    recommended_action: '해당 기간의 급여 고시 변경 내역을 확인하십시오.',
+  },
+  unknown: {
+    explanation: '현재 데이터만으로는 명확한 원인을 판단하기 어렵습니다. 추가적인 맥락 정보가 필요합니다.',
+    recommended_action: '담당 영업팀 및 의약정보팀에 현장 확인을 요청하십시오.',
+  },
+};
+
+const CLASSIFICATIONS = ['data_error', 'market_trend', 'seasonal', 'policy_change', 'unknown'] as const;
+
+export function generateMockAnalysis(items: AnomalyItem[]): AiAnalysisResult[] {
+  const toAnalyze = items.filter((i) => i.severity !== 'normal');
+  return toAnalyze.map((item, idx) => {
+    let classification: typeof CLASSIFICATIONS[number];
+    const absPct = Math.abs(item.change_pct);
+
+    if (absPct > 200 || item.baseline_volume === 0) {
+      classification = 'data_error';
+    } else if (absPct > 80) {
+      classification = idx % 3 === 0 ? 'policy_change' : 'market_trend';
+    } else if (idx % 5 === 0) {
+      classification = 'seasonal';
+    } else if (idx % 4 === 0) {
+      classification = 'policy_change';
+    } else {
+      classification = CLASSIFICATIONS[idx % CLASSIFICATIONS.length];
+    }
+
+    const { explanation, recommended_action } = MOCK_EXPLANATIONS[classification];
+    return {
+      drug_id: item.drug_id,
+      drug_name: item.drug_name,
+      classification,
+      confidence: Math.round((0.55 + (idx % 5) * 0.08) * 100) / 100,
+      explanation,
+      recommended_action,
+    };
+  });
+}
+
 export async function analyzeAnomalies(
   items: AnomalyItem[],
   onBatchComplete?: (results: AiAnalysisResult[]) => void

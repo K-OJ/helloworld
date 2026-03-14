@@ -18,6 +18,7 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [summary, setSummary] = useState<Record<string, number> | null>(null);
+  const [isMock, setIsMock] = useState(false);
 
   const toAnalyze = items.filter((i) => i.severity !== 'normal');
 
@@ -39,6 +40,7 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
       if (!res.ok) throw new Error(data.error ?? 'AI 분석 실패');
 
       const results = data.results as AiAnalysisResult[];
+      const mock = data.is_mock as boolean;
       const map = new Map<string, AiAnalysisResult>();
       const classCounts: Record<string, number> = {};
 
@@ -47,7 +49,6 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
         classCounts[r.classification] = (classCounts[r.classification] ?? 0) + 1;
       }
 
-      // Also index by drug_id__hospital_code if possible
       for (const item of items) {
         const byId = results.find((r) => r.drug_id === item.drug_id);
         if (byId) {
@@ -55,6 +56,7 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
         }
       }
 
+      setIsMock(mock);
       setSummary(classCounts);
       onResults(map);
       setProgress(100);
@@ -71,6 +73,11 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
         <div>
           <h3 className="font-semibold text-gray-800 flex items-center gap-2">
             <span className="text-lg">🤖</span> AI 컨텍스트 분석
+            {isMock && status === 'done' && (
+              <span className="inline-flex items-center rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-xs font-medium text-amber-700">
+                예시 데이터
+              </span>
+            )}
           </h3>
           <p className="text-sm text-gray-500 mt-0.5">
             경고/위험 항목 <strong>{toAnalyze.length}건</strong>에 대해 Claude AI가 이상 원인을 분석합니다.
@@ -82,7 +89,7 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
           </Button>
         )}
         {status === 'done' && (
-          <Button variant="outline" onClick={() => { setStatus('idle'); setSummary(null); }} className="shrink-0">
+          <Button variant="outline" onClick={() => { setStatus('idle'); setSummary(null); setIsMock(false); }} className="shrink-0">
             재분석
           </Button>
         )}
@@ -103,14 +110,21 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
       )}
 
       {status === 'done' && summary && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-          {Object.entries(summary).map(([cls, cnt]) => (
-            <div key={cls} className="rounded-lg bg-white border p-2 text-center">
-              <p className="text-lg font-bold text-gray-800">{cnt}</p>
-              <p className="text-xs text-gray-500">{AI_CLASSIFICATION_LABELS[cls] ?? cls}</p>
+        <>
+          {isMock && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-700">
+              AI API 연결 실패로 예시 분석 결과를 표시합니다. 실제 분석 결과와 다를 수 있습니다.
             </div>
-          ))}
-        </div>
+          )}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+            {Object.entries(summary).map(([cls, cnt]) => (
+              <div key={cls} className="rounded-lg bg-white border p-2 text-center">
+                <p className="text-lg font-bold text-gray-800">{cnt}</p>
+                <p className="text-xs text-gray-500">{AI_CLASSIFICATION_LABELS[cls] ?? cls}</p>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
