@@ -46,7 +46,8 @@
       "Bash(cd \"C:/권오진/claude_work\" && mv qa-dashboard/src . && rmdir qa-dashboard && ls src/)",
       "Bash(cd \"C:/권오진/claude_work\" && rm -rf qa-dashboard && ls src/)",
       "Bash(cd \"C:/권오진/claude_work\" && npx vercel env add ANTHROPIC_API_KEY production 2>&1)",
-      "Bash(cd \"C:/권오진/claude_work\" && rm src/app/page.tsx src/components/DataUploader.tsx src/utils/compareData.ts && echo \"done\")"
+      "Bash(cd \"C:/권오진/claude_work\" && rm src/app/page.tsx src/components/DataUploader.tsx src/utils/compareData.ts && echo \"done\")",
+      "Bash(npx kill-port:*)"
     ]
   }
 }
