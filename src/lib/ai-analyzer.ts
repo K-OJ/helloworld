@@ -1,20 +1,32 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { generateObject } from 'ai';
-import { z } from 'zod';
+import { jsonSchema } from 'ai';
 import type { AnomalyItem, AiAnalysisResult } from './types';
 import { AI_BATCH_SIZE } from './constants';
 
-const AiAnalysisSchema = z.object({
-  analyses: z.array(
-    z.object({
-      drug_id: z.string(),
-      drug_name: z.string(),
-      classification: z.enum(['data_error', 'market_trend', 'seasonal', 'policy_change', 'unknown']),
-      confidence: z.number(),
-      explanation: z.string(),
-      recommended_action: z.string(),
-    })
-  ),
+const AiAnalysisSchema = jsonSchema({
+  type: 'object',
+  properties: {
+    analyses: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          drug_id: { type: 'string' },
+          drug_name: { type: 'string' },
+          classification: {
+            type: 'string',
+            enum: ['data_error', 'market_trend', 'seasonal', 'policy_change', 'unknown'],
+          },
+          confidence: { type: 'number' },
+          explanation: { type: 'string' },
+          recommended_action: { type: 'string' },
+        },
+        required: ['drug_id', 'drug_name', 'classification', 'confidence', 'explanation', 'recommended_action'],
+      },
+    },
+  },
+  required: ['analyses'],
 });
 
 const SYSTEM_PROMPT = `당신은 제약 데이터 품질 분석 전문가입니다. 월간 의약품 처방량 데이터의 전월 대비 변동을 분석하여 이상 여부를 판단합니다.
@@ -53,7 +65,8 @@ async function analyzeBatch(batch: AnomalyItem[]): Promise<AiAnalysisResult[]> {
     temperature: 0,
   });
 
-  return object.analyses as AiAnalysisResult[];
+  const result = object as { analyses: AiAnalysisResult[] };
+  return result.analyses;
 }
 
 export async function analyzeAnomalies(
