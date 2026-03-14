@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileDropzone } from '@/components/upload/FileDropzone';
@@ -30,6 +31,13 @@ const fadeUp: Variants = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
+
+  function handleLogout() {
+    document.cookie = 'autoqa_auth=; path=/; max-age=0';
+    router.push('/login');
+  }
+
   const {
     baselineFile, targetFile, setBaselineFile, setTargetFile,
     status, error, result, upload, reset,
@@ -124,6 +132,9 @@ export default function DashboardPage() {
                   새로 검수하기
                 </Button>
               )}
+              <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-500 hover:text-red-600">
+                로그아웃
+              </Button>
             </div>
           </div>
         </div>
