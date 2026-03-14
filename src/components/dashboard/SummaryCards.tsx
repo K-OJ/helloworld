@@ -17,7 +17,7 @@ export function SummaryCards({ total, normal, warning, danger, baselinePeriod, t
         <span>→</span>
         <span>당월: <strong className="text-gray-700">{targetPeriod}</strong></span>
       </div>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">전체 항목</CardTitle>

@@ -12,7 +12,7 @@ import { AnomalyTable } from '@/components/dashboard/AnomalyTable';
 import { AnomalyBarChart } from '@/components/dashboard/AnomalyBarChart';
 import { ChangeChart } from '@/components/dashboard/ChangeChart';
 import { AiInsightPanel } from '@/components/dashboard/AiInsightPanel';
-import { AiChatPanel } from '@/components/dashboard/AiChatPanel';
+import { QaChatbot } from '@/components/QaChatbot';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { readFileHeaders } from '@/lib/read-headers';
@@ -104,15 +104,15 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="border-b border-slate-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-2">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">Auto-QA Dashboard</h1>
-              <p className="text-sm text-slate-500">월간 제약 데이터 정합성 AI 자동 검수</p>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">Auto-QA Dashboard</h1>
+              <p className="hidden sm:block text-sm text-slate-500">월간 제약 데이터 정합성 AI 자동 검수</p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
               {isDemoMode && (
                 <div
-                  className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 cursor-default"
+                  className="hidden sm:flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 cursor-default"
                   title="API 크레딧 제한으로 인해 현재 AI 분석 결과는 통제된 시나리오(Mock Data) 기반으로 제공됩니다."
                 >
                   <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -129,7 +129,7 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
+      <main className="w-full max-w-7xl mx-auto p-4 md:p-8 space-y-6">
 
         {/* Upload Step */}
         {step === 'upload' && (
@@ -140,7 +140,7 @@ export default function DashboardPage() {
                 전월(기준) 데이터와 당월(검수 대상) 데이터를 업로드하면 자동으로 비교 분석합니다.
               </p>
             </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="flex flex-col md:flex-row gap-4">
               <FileDropzone
                 label="전월 데이터 (기준)"
                 description="이전 달 처방 데이터를 업로드하세요"
@@ -263,7 +263,7 @@ export default function DashboardPage() {
 
                 {/* AI 추가 질문 */}
                 <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
-                  <AiChatPanel items={result.items} aiResults={aiResults} />
+                  <QaChatbot anomaliesData={{ items: result.items, aiResults }} />
                 </motion.div>
               </>
             )}
