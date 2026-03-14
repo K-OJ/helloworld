@@ -20,6 +20,7 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
   const [summary, setSummary] = useState<Record<string, number> | null>(null);
   const [isMock, setIsMock] = useState(false);
   const [topFindings, setTopFindings] = useState<Array<{ item: AnomalyItem; ai: AiAnalysisResult }>>([]);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
 
   const toAnalyze = items.filter((i) => i.severity !== 'normal');
 
@@ -42,6 +43,7 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
 
       const results = data.results as AiAnalysisResult[];
       const mock = data.is_mock as boolean;
+      setErrorDetail(data.error_detail ?? null);
       const map = new Map<string, AiAnalysisResult>();
       const classCounts: Record<string, number> = {};
 
@@ -101,12 +103,23 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
             AI 분석 실행
           </Button>
         )}
+
         {status === 'done' && (
           <Button variant="outline" onClick={() => { setStatus('idle'); setSummary(null); setIsMock(false); setTopFindings([]); }} className="shrink-0">
             재분석
           </Button>
         )}
       </div>
+
+      {status === 'idle' && (
+        <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-500 flex items-start gap-2">
+          <span>🔒</span>
+          <span>
+            <strong>보안 안내:</strong> 업로드한 파일 원본은 서버에 저장되지 않습니다.
+            AI 분석에는 약품코드·처방량 변동률 등 집계 통계만 전송되며, 개인정보는 포함되지 않습니다.
+          </span>
+        </div>
+      )}
 
       {status === 'running' && (
         <div className="space-y-2">
@@ -127,6 +140,7 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
           {isMock && (
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-700">
               AI API 연결 실패로 예시 분석 결과를 표시합니다. 실제 분석 결과와 다를 수 있습니다.
+              {errorDetail && <p className="mt-1 font-mono text-xs text-amber-600 break-all">{errorDetail}</p>}
             </div>
           )}
 

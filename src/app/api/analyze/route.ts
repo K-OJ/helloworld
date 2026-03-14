@@ -13,12 +13,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: '분석할 항목이 없습니다.' }, { status: 400 });
   }
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    const results = generateMockAnalysis(anomalies);
+    return NextResponse.json({
+      results,
+      is_mock: true,
+      error_detail: 'API 키가 설정되지 않았습니다. Vercel 대시보드 → Settings → Environment Variables에 ANTHROPIC_API_KEY를 추가하세요.',
+    });
+  }
+
   try {
     const results = await analyzeAnomalies(anomalies);
     return NextResponse.json({ results, is_mock: false });
   } catch (err) {
-    console.error('[analyze] error:', err);
+    const errorMsg = err instanceof Error ? err.message : String(err);
+    console.error('[analyze] error:', errorMsg);
     const results = generateMockAnalysis(anomalies);
-    return NextResponse.json({ results, is_mock: true });
+    return NextResponse.json({ results, is_mock: true, error_detail: errorMsg });
   }
 }

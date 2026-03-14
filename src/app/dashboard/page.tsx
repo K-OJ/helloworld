@@ -10,6 +10,7 @@ import { AnomalyTable } from '@/components/dashboard/AnomalyTable';
 import { ChangeChart } from '@/components/dashboard/ChangeChart';
 import { AiInsightPanel } from '@/components/dashboard/AiInsightPanel';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
+import { AiChatPanel } from '@/components/dashboard/AiChatPanel';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { readFileHeaders } from '@/lib/read-headers';
 import type { AiAnalysisResult, ColumnMapping } from '@/lib/types';
@@ -195,6 +196,9 @@ export default function DashboardPage() {
                     </TabsContent>
                   </Tabs>
                 </div>
+
+                {/* AI 추가 질문 */}
+                <AiChatPanel items={result.items} aiResults={aiResults} />
               </>
             )}
           </div>
