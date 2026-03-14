@@ -5,22 +5,24 @@ const FIELD_KEYWORDS: Record<keyof ColumnMapping, string[]> = {
   drug_id: [
     'drug_id', 'drugid', 'drug_code', 'drugcode',
     '약품코드', '품목코드', '의약품코드', '약코드', '약품번호', '품목번호', '약번호', '코드',
+    '표준코드', '단축코드',
   ],
   drug_name: [
     'drug_name', 'drugname',
     '약품명', '품목명', '의약품명', '약품이름', '품목이름', '약명', '제품명',
   ],
   hospital_code: [
-    'hospital_code', 'hospitalcode', 'hospital',
-    '병원코드', '요양기관번호', '기관코드', '요양기관코드', '병원번호', '기관번호', '요양번호', '요양기관', '기관',
+    'hospital_code', 'hospitalcode', 'hospital', 'hospitalid',
+    '병원코드', '병원ID', '요양기관번호', '요양기관기호', '기관코드', '요양기관코드', '병원번호', '기관번호', '요양번호', '요양기관', '기관',
   ],
   prescription_volume: [
     'prescription_volume', 'prescriptionvolume', 'volume', 'qty', 'quantity', 'count',
     '처방량', '처방건수', '처방수량', '처방횟수', '투약량', '처방', '수량', '건수',
+    '판매금액sum', '판매금액', '판매수량',
   ],
   date: [
-    'date', 'yyyymm', 'yearmonth',
-    '날짜', '기준년월', '기준월', '년월', '연월', '기간', '년도월', '월', '기준일자',
+    'date', 'yyyymm', 'yearmonth', 'month', 'monthid',
+    '날짜', '기준년월', '기준월', '년월', '연월', '기간', '년도월', '월', '기준일자', 'MONTHID',
   ],
 };
 
