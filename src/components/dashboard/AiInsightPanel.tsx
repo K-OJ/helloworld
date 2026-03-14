@@ -9,11 +9,12 @@ import { AI_CLASSIFICATION_LABELS } from '@/lib/constants';
 interface AiInsightPanelProps {
   items: AnomalyItem[];
   onResults: (results: Map<string, AiAnalysisResult>) => void;
+  onDemoModeChange?: (isDemoMode: boolean) => void;
 }
 
 type AiStatus = 'idle' | 'running' | 'done' | 'error';
 
-export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
+export function AiInsightPanel({ items, onResults, onDemoModeChange }: AiInsightPanelProps) {
   const [status, setStatus] = useState<AiStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
@@ -44,34 +45,45 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
       const results = data.results as AiAnalysisResult[];
       const mock = data.is_mock as boolean;
       setErrorDetail(data.error_detail ?? null);
+      setIsMock(mock);
+      onDemoModeChange?.(mock);
+
       const map = new Map<string, AiAnalysisResult>();
       const classCounts: Record<string, number> = {};
 
-      for (const r of results) {
-        map.set(r.drug_id, r);
-        classCounts[r.classification] = (classCounts[r.classification] ?? 0) + 1;
-      }
-
-      for (const item of items) {
-        const byId = results.find((r) => r.drug_id === item.drug_id);
-        if (byId) {
-          map.set(`${item.drug_id}__${item.hospital_code}`, byId);
+      if (!mock) {
+        // 실제 AI 결과만 map에 등록
+        for (const r of results) {
+          map.set(r.drug_id, r);
+          classCounts[r.classification] = (classCounts[r.classification] ?? 0) + 1;
+        }
+        for (const item of items) {
+          const byId = results.find((r) => r.drug_id === item.drug_id);
+          if (byId) {
+            map.set(`${item.drug_id}__${item.hospital_code}`, byId);
+          }
+        }
+      } else {
+        // Demo Mode: 분류 카운트만 계산하고 map은 비움 (테이블에서 ⚠️ 표시)
+        for (const r of results) {
+          classCounts[r.classification] = (classCounts[r.classification] ?? 0) + 1;
         }
       }
 
-      // Top findings: danger items first, then warning, sorted by confidence desc
-      const findings = items
-        .filter((i) => i.severity !== 'normal')
-        .map((i) => ({ item: i, ai: map.get(`${i.drug_id}__${i.hospital_code}`) }))
-        .filter((f): f is { item: AnomalyItem; ai: AiAnalysisResult } => !!f.ai)
-        .sort((a, b) => {
-          if (a.item.severity !== b.item.severity) return a.item.severity === 'danger' ? -1 : 1;
-          return b.ai.confidence - a.ai.confidence;
-        })
-        .slice(0, 3);
+      // 주요 발견 사항 (실제 AI 결과일 때만)
+      if (!mock) {
+        const findings = items
+          .filter((i) => i.severity !== 'normal')
+          .map((i) => ({ item: i, ai: map.get(`${i.drug_id}__${i.hospital_code}`) }))
+          .filter((f): f is { item: AnomalyItem; ai: AiAnalysisResult } => !!f.ai)
+          .sort((a, b) => {
+            if (a.item.severity !== b.item.severity) return a.item.severity === 'danger' ? -1 : 1;
+            return b.ai.confidence - a.ai.confidence;
+          })
+          .slice(0, 3);
+        setTopFindings(findings);
+      }
 
-      setTopFindings(findings);
-      setIsMock(mock);
       setSummary(classCounts);
       onResults(map);
       setProgress(100);
@@ -88,11 +100,6 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
         <div>
           <h3 className="font-semibold text-gray-800 flex items-center gap-2">
             <span className="text-lg">🤖</span> AI 컨텍스트 분석
-            {isMock && status === 'done' && (
-              <span className="inline-flex items-center rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-xs font-medium text-amber-700">
-                예시 데이터
-              </span>
-            )}
           </h3>
           <p className="text-sm text-gray-500 mt-0.5">
             경고/위험 항목 <strong>{toAnalyze.length}건</strong>에 대해 Claude AI가 이상 원인을 분석합니다.
@@ -103,9 +110,8 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
             AI 분석 실행
           </Button>
         )}
-
         {status === 'done' && (
-          <Button variant="outline" onClick={() => { setStatus('idle'); setSummary(null); setIsMock(false); setTopFindings([]); }} className="shrink-0">
+          <Button variant="outline" onClick={() => { setStatus('idle'); setSummary(null); setIsMock(false); setTopFindings([]); onDemoModeChange?.(false); }} className="shrink-0">
             재분석
           </Button>
         )}
@@ -137,10 +143,9 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
 
       {status === 'done' && summary && (
         <>
-          {isMock && (
-            <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-xs text-amber-700">
-              AI API 연결 실패로 예시 분석 결과를 표시합니다. 실제 분석 결과와 다를 수 있습니다.
-              {errorDetail && <p className="mt-1 font-mono text-xs text-amber-600 break-all">{errorDetail}</p>}
+          {isMock && errorDetail && (
+            <div className="rounded-lg bg-slate-50 border border-slate-200 p-3 text-xs text-slate-500">
+              <span className="font-mono break-all">{errorDetail}</span>
             </div>
           )}
 
@@ -154,8 +159,8 @@ export function AiInsightPanel({ items, onResults }: AiInsightPanelProps) {
             ))}
           </div>
 
-          {/* 주요 발견 사항 (경영진/유관부서 공유용) */}
-          {topFindings.length > 0 && (
+          {/* 주요 발견 사항 (실제 AI 결과일 때만) */}
+          {!isMock && topFindings.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-semibold text-gray-700">주요 발견 사항 (즉각 조치 필요)</p>
               {topFindings.map(({ item, ai }, i) => (

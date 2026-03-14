@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { ExternalLink } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
 import type { AnomalyItem, AiAnalysisResult, Severity, AiClassification } from '@/lib/types';
 import { AI_CLASSIFICATION_LABELS } from '@/lib/constants';
@@ -13,6 +14,8 @@ const PAGE_SIZE = 20;
 interface AnomalyTableProps {
   items: AnomalyItem[];
   aiResults: Map<string, AiAnalysisResult>;
+  analysisFailed?: boolean;
+  onRetryItem?: (item: AnomalyItem) => void;
 }
 
 type SortKey = 'change_pct' | 'absolute_change' | 'baseline_volume' | 'target_volume';
@@ -21,7 +24,7 @@ type Override =
   | { status: 'approved' }
   | { status: 'modified'; classification: AiClassification };
 
-export function AnomalyTable({ items, aiResults }: AnomalyTableProps) {
+export function AnomalyTable({ items, aiResults, analysisFailed, onRetryItem }: AnomalyTableProps) {
   const [severityFilter, setSeverityFilter] = useState<Severity | 'all'>('all');
   const [sortKey, setSortKey] = useState<SortKey>('absolute_change');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -171,6 +174,18 @@ export function AnomalyTable({ items, aiResults }: AnomalyTableProps) {
                           <p className="mt-0.5 text-gray-500 line-clamp-1">{ai.explanation}</p>
                           <span className="text-blue-400 text-xs">{isExpanded ? '▲ 접기' : '▼ 상세보기'}</span>
                         </div>
+                      ) : analysisFailed && item.severity !== 'normal' ? (
+                        <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+                          <span className="text-amber-500 text-xs">⚠ 분석 지연</span>
+                          {onRetryItem && (
+                            <button
+                              className="text-xs text-blue-600 underline hover:text-blue-800"
+                              onClick={() => onRetryItem(item)}
+                            >
+                              재분석 요청
+                            </button>
+                          )}
+                        </div>
                       ) : (
                         <span className="text-gray-300">-</span>
                       )}
@@ -187,6 +202,18 @@ export function AnomalyTable({ items, aiResults }: AnomalyTableProps) {
                           <div>
                             <p className="font-medium text-gray-700 mb-1">✅ 권장 조치</p>
                             <p className="text-blue-700 bg-blue-50 rounded p-2 border border-blue-100">{ai.recommended_action}</p>
+                            {ai.action_url && ai.action_label && (
+                              <a
+                                href={ai.action_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                {ai.action_label}
+                              </a>
+                            )}
                           </div>
                         </div>
 

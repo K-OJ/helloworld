@@ -37,6 +37,8 @@ export interface AiAnalysisResult {
   confidence: number;
   explanation: string;
   recommended_action: string;
+  action_label?: string;
+  action_url?: string;
 }
 
 export interface QaReport {

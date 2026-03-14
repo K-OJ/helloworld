@@ -1,21 +1,33 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, type Variants } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { FileDropzone } from '@/components/upload/FileDropzone';
 import { ColumnMapper } from '@/components/upload/ColumnMapper';
 import { SummaryCards } from '@/components/dashboard/SummaryCards';
 import { AnomalyTable } from '@/components/dashboard/AnomalyTable';
+import { AnomalyBarChart } from '@/components/dashboard/AnomalyBarChart';
 import { ChangeChart } from '@/components/dashboard/ChangeChart';
 import { AiInsightPanel } from '@/components/dashboard/AiInsightPanel';
-import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { AiChatPanel } from '@/components/dashboard/AiChatPanel';
+import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { readFileHeaders } from '@/lib/read-headers';
-import type { AiAnalysisResult, ColumnMapping } from '@/lib/types';
+import type { AiAnalysisResult, AnomalyItem, ColumnMapping } from '@/lib/types';
 
 type Step = 'upload' | 'mapping' | 'results';
+
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.08, duration: 0.35, ease: [0.25, 0.1, 0.25, 1] },
+  }),
+};
 
 export default function DashboardPage() {
   const {
@@ -26,9 +38,17 @@ export default function DashboardPage() {
   const [step, setStep] = useState<Step>('upload');
   const [headers, setHeaders] = useState<string[]>([]);
   const [aiResults, setAiResults] = useState<Map<string, AiAnalysisResult>>(new Map());
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [analysisFailed, setAnalysisFailed] = useState(false);
 
   function handleAiResults(results: Map<string, AiAnalysisResult>) {
     setAiResults(results);
+    setAnalysisFailed(results.size === 0);
+  }
+
+  function handleDemoModeChange(demo: boolean) {
+    setIsDemoMode(demo);
+    setAnalysisFailed(demo);
   }
 
   async function handleNext() {
@@ -52,25 +72,59 @@ export default function DashboardPage() {
     setStep('upload');
     setHeaders([]);
     setAiResults(new Map());
+    setIsDemoMode(false);
+    setAnalysisFailed(false);
+  }
+
+  async function handleRetryItem(item: AnomalyItem) {
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ anomalies: [item] }),
+      });
+      const data = await res.json();
+      if (res.ok && !data.is_mock && data.results?.length) {
+        const r = data.results[0] as AiAnalysisResult;
+        const key = `${item.drug_id}__${item.hospital_code}`;
+        setAiResults((prev) => {
+          const next = new Map(prev);
+          next.set(key, r);
+          next.set(r.drug_id, r);
+          return next;
+        });
+      }
+    } catch {
+      // silent fail — user can retry again
+    }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Header */}
-      <header className="border-b bg-white shadow-sm">
+      <header className="border-b border-slate-200 bg-white shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-gray-900">
-                Auto-QA Dashboard
-              </h1>
-              <p className="text-sm text-gray-500">월간 제약 데이터 정합성 AI 자동 검수</p>
+              <h1 className="text-xl font-bold text-gray-900">Auto-QA Dashboard</h1>
+              <p className="text-sm text-slate-500">월간 제약 데이터 정합성 AI 자동 검수</p>
             </div>
-            {(step === 'mapping' || step === 'results') && (
-              <Button variant="outline" size="sm" onClick={handleReset}>
-                새로 검수하기
-              </Button>
-            )}
+            <div className="flex items-center gap-3">
+              {isDemoMode && (
+                <div
+                  className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 cursor-default"
+                  title="API 크레딧 제한으로 인해 현재 AI 분석 결과는 통제된 시나리오(Mock Data) 기반으로 제공됩니다."
+                >
+                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  Demo Mode Active
+                </div>
+              )}
+              {(step === 'mapping' || step === 'results') && (
+                <Button variant="outline" size="sm" onClick={handleReset}>
+                  새로 검수하기
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -79,14 +133,13 @@ export default function DashboardPage() {
 
         {/* Upload Step */}
         {step === 'upload' && (
-          <div className="rounded-2xl border bg-white p-6 shadow-sm space-y-5">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
             <div>
               <h2 className="text-lg font-semibold text-gray-800">데이터 업로드</h2>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="text-sm text-slate-500 mt-1">
                 전월(기준) 데이터와 당월(검수 대상) 데이터를 업로드하면 자동으로 비교 분석합니다.
               </p>
             </div>
-
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FileDropzone
                 label="전월 데이터 (기준)"
@@ -103,19 +156,12 @@ export default function DashboardPage() {
                 disabled={false}
               />
             </div>
-
             <div className="flex items-center gap-3">
-              <Button
-                onClick={handleNext}
-                disabled={!baselineFile || !targetFile}
-                className="min-w-32"
-              >
+              <Button onClick={handleNext} disabled={!baselineFile || !targetFile} className="min-w-32">
                 다음: 컬럼 매핑
               </Button>
-              <span className="text-xs text-gray-400">CSV, XLSX, XLS 파일 지원 · 최대 50MB</span>
+              <span className="text-xs text-slate-400">CSV, XLSX, XLS 파일 지원 · 최대 50MB</span>
             </div>
-
-            {/* Sample data hint */}
             <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-700">
               <strong>테스트용 샘플 데이터:</strong>{' '}
               <a href="/sample-data/baseline-sample.csv" download className="underline">전월 샘플</a>{' '}
@@ -127,20 +173,24 @@ export default function DashboardPage() {
 
         {/* Mapping Step */}
         {step === 'mapping' && (
-          <ColumnMapper
-            headers={headers}
-            onConfirm={handleMappingConfirm}
-            onBack={handleBack}
-          />
+          <ColumnMapper headers={headers} onConfirm={handleMappingConfirm} onBack={handleBack} />
         )}
 
         {/* Results Step */}
         {step === 'results' && (
           <div className="space-y-5">
-            {/* Loading / Error */}
+
+            {/* Skeleton while loading */}
             {status === 'uploading' && (
-              <div className="rounded-2xl border bg-white p-10 shadow-sm text-center text-sm text-gray-500">
-                분석 중...
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <Skeleton className="h-6 w-40 mb-4" />
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+                  </div>
+                </div>
+                <Skeleton className="h-64 rounded-2xl" />
+                <Skeleton className="h-96 rounded-2xl" />
               </div>
             )}
 
@@ -153,7 +203,8 @@ export default function DashboardPage() {
             {result && (
               <>
                 {/* Summary */}
-                <div className="rounded-2xl border bg-white p-6 shadow-sm">
+                <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible"
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                   <h2 className="text-lg font-semibold text-gray-800 mb-4">검수 결과 요약</h2>
                   <SummaryCards
                     total={result.summary.total}
@@ -163,9 +214,8 @@ export default function DashboardPage() {
                     baselinePeriod={result.baseline_period}
                     targetPeriod={result.target_period}
                   />
-                </div>
+                </motion.div>
 
-                {/* Skipped rows notice */}
                 {(result.skipped_rows.baseline > 0 || result.skipped_rows.target > 0) && (
                   <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
                     파싱 제외된 행: 전월 {result.skipped_rows.baseline}건, 당월 {result.skipped_rows.target}건
@@ -174,31 +224,47 @@ export default function DashboardPage() {
                 )}
 
                 {/* AI Analysis */}
-                <AiInsightPanel items={result.items} onResults={handleAiResults} />
+                <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+                  <AiInsightPanel
+                    items={result.items}
+                    onResults={handleAiResults}
+                    onDemoModeChange={handleDemoModeChange}
+                  />
+                </motion.div>
 
                 {/* Detail Tabs */}
-                <div className="rounded-2xl border bg-white p-6 shadow-sm">
+                <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible"
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-gray-800">상세 검수 결과</h2>
                     <ReportDownloadButton uploadResult={result} aiResults={aiResults} />
                   </div>
-
                   <Tabs defaultValue="table">
                     <TabsList className="mb-4">
                       <TabsTrigger value="table">테이블 뷰</TabsTrigger>
                       <TabsTrigger value="chart">차트 뷰</TabsTrigger>
                     </TabsList>
                     <TabsContent value="table">
-                      <AnomalyTable items={result.items} aiResults={aiResults} />
+                      <div className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                        <AnomalyBarChart items={result.items} />
+                      </div>
+                      <AnomalyTable
+                        items={result.items}
+                        aiResults={aiResults}
+                        analysisFailed={analysisFailed}
+                        onRetryItem={handleRetryItem}
+                      />
                     </TabsContent>
                     <TabsContent value="chart">
                       <ChangeChart items={result.items} />
                     </TabsContent>
                   </Tabs>
-                </div>
+                </motion.div>
 
                 {/* AI 추가 질문 */}
-                <AiChatPanel items={result.items} aiResults={aiResults} />
+                <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
+                  <AiChatPanel items={result.items} aiResults={aiResults} />
+                </motion.div>
               </>
             )}
           </div>
