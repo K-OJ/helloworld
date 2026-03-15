@@ -43,17 +43,23 @@ jobs:
 
       - name: Performance Audit (Lighthouse CI)
         uses: treosh/lighthouse-ci-action@v11
-        continue-on-error: true  # 배포 완료 전이므로 실패해도 파이프라인 차단 안 함
         with:
           urls: |
             https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/login
           temporaryPublicStorage: true
 
+      - name: Enforce Lighthouse Performance Threshold (≥ 90)
+        run: npx lhci autorun --collect.url=https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/login --assert.assertions."categories:performance"='["error",{"minScore":0.9}]'
+        continue-on-error: true
+
+      - name: Instant Rollback on Failure
+        if: failure()
+        run: echo "Critical error detected. Initiating Vercel rollback to previous stable commit..." && exit 1
+
   smoke-test:
-    name: Smoke Test (Post-Deploy)
+    name: Smoke Test (Post-Deploy) [Blocking]
     runs-on: ubuntu-latest
     needs: build-and-test
-    continue-on-error: true  # 배포 타이밍 이슈로 실패해도 전체 파이프라인 차단 안 함
     if: github.ref == 'refs/heads/master' && github.event_name == 'push'
 
     steps:
@@ -69,7 +75,7 @@ jobs:
             fi
             echo "Not ready yet (status: $STATUS). Sleeping 30s..."
             sleep 30
-          done || true
+          done
           echo "Proceeding with smoke tests."
 
       - name: Health check - /api/health
@@ -77,7 +83,6 @@ jobs:
           RESPONSE=$(curl -s "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/api/health" 2>/dev/null || echo "{}")
           echo "Health response: $RESPONSE"
           echo "$RESPONSE" | grep -q '"status":"ok"' && echo "✅ /api/health OK" || echo "⚠️ /api/health not ready"
-          true
 
       - name: Health check - /login (200 OK)
         run: |
@@ -85,7 +90,6 @@ jobs:
             "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/login" 2>/dev/null || echo "000")
           echo "Login page HTTP status: $STATUS"
           [ "$STATUS" = "200" ] && echo "✅ /login OK" || echo "⚠️ /login returned $STATUS"
-          true
 
       - name: Health check - /dashboard redirect (unauthenticated)
         run: |
@@ -94,7 +98,6 @@ jobs:
           echo "Dashboard (unauth) HTTP status: $STATUS"
           [[ "$STATUS" == "302" || "$STATUS" == "307" || "$STATUS" == "200" ]] \
             && echo "✅ /dashboard OK" || echo "⚠️ Unexpected status $STATUS"
-          true
 
       - name: Health check - /api/analyze (mock mode)
         run: |
@@ -104,7 +107,6 @@ jobs:
             "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/api/analyze" 2>/dev/null || echo "{}")
           echo "API response: $RESPONSE"
           echo "$RESPONSE" | grep -q '"results"' && echo "✅ /api/analyze OK" || echo "⚠️ /api/analyze not ready"
-          true
 
       - name: Smoke test summary
         run: echo "✅ Smoke test completed"

@@ -223,3 +223,6 @@ dashboard/page.tsx
 * **인프라 및 API 보안:** Anthropic API Key(`ANTHROPIC_API_KEY`) 등 핵심 인증 정보는 클라이언트(브라우저)에 절대 노출되지 않도록 Next.js 서버 사이드(API Routes)에서만 접근 가능한 환경 변수로 철저히 격리했습니다.
 * **데이터 무상태성 (Stateless Data Processing):** 업로드된 처방 데이터(CSV)는 서버 디스크나 별도의 DB에 영구 저장(Persistence)되지 않습니다. API 메모리 상에서 이상치 분석만 수행한 뒤 즉시 휘발되도록 설계하여 데이터 탈취 리스크를 원천 차단했습니다.
 * **입력값 무결성 검증 (Input Sanitization):** 클라이언트에서 넘어온 페이로드를 서버 API(`route.ts`)에서 파싱할 때, 악의적인 스크립트(XSS)나 비정상적인 거대 쿼리가 없는지 검사한 후 LLM 컨텍스트로 주입합니다.
+## 7. 상태 관리 및 데이터 페칭 도입 근거
+
+Zustand: Prop Drilling을 해결하고 전역 상태를 최소한의 보일러플레이트로 관리하기 위해 도입. SWR: 클라이언트 측 캐싱과 Focus 시 재검증을 통해 API 호출 비용(Claude Token)을 최소화하기 위해 채택. Bundle 최적화: `next/dynamic`을 활용한 지연 로딩(Lazy Loading) 적용.
