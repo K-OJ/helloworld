@@ -17,6 +17,7 @@ import { FloatingChat } from '@/components/FloatingChat';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useServerHealth } from '@/hooks/useServerHealth';
+import { useLang } from '@/hooks/useLang';
 import { TopHeader } from '@/components/TopHeader';
 import { readFileHeaders } from '@/lib/read-headers';
 import type { AiAnalysisResult, AnomalyItem, ColumnMapping } from '@/lib/types';
@@ -35,6 +36,7 @@ const fadeUp: Variants = {
 export default function DashboardPage() {
   const router = useRouter();
   const { isHealthy } = useServerHealth();
+  const { t } = useLang();
 
   function handleLogout() {
     document.cookie = 'autoqa_auth=; path=/; max-age=0';
@@ -117,8 +119,8 @@ export default function DashboardPage() {
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-gray-900">Auto-QA Dashboard</h1>
-              <p className="hidden sm:block text-sm text-slate-500">월간 제약 데이터 정합성 AI 자동 검수</p>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900">{t.appTitle}</h1>
+              <p className="hidden sm:block text-sm text-slate-500">{t.appDesc}</p>
             </div>
             <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
               {isDemoMode && (
@@ -127,12 +129,12 @@ export default function DashboardPage() {
                   title="API 크레딧 제한으로 인해 현재 AI 분석 결과는 통제된 시나리오(Mock Data) 기반으로 제공됩니다."
                 >
                   <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Demo Mode Active
+                  {t.demoModeLabel}
                 </div>
               )}
               {(step === 'mapping' || step === 'results') && (
                 <Button variant="outline" size="sm" onClick={handleReset}>
-                  새로 검수하기
+                  {t.newAnalysis}
                 </Button>
               )}
               <span
@@ -140,11 +142,11 @@ export default function DashboardPage() {
                 className="hidden sm:flex items-center gap-1 text-xs text-slate-400"
               >
                 <span className={`h-2 w-2 rounded-full ${isHealthy ? 'bg-green-400' : 'bg-slate-300'}`} />
-                {isHealthy ? '🟢 헬스체크 정상' : '확인 중'}
+                {isHealthy ? t.healthOk : t.healthChecking}
               </span>
               <TopHeader />
               <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-500 hover:text-red-600">
-                로그아웃
+                {t.logout}
               </Button>
             </div>
           </div>
@@ -157,22 +159,20 @@ export default function DashboardPage() {
         {step === 'upload' && (
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">데이터 업로드</h2>
-              <p className="text-sm text-slate-500 mt-1">
-                전월(기준) 데이터와 당월(검수 대상) 데이터를 업로드하면 자동으로 비교 분석합니다.
-              </p>
+              <h2 className="text-lg font-semibold text-gray-800">{t.uploadTitle}</h2>
+              <p className="text-sm text-slate-500 mt-1">{t.uploadDesc}</p>
             </div>
             <div className="flex flex-col md:flex-row gap-4">
               <FileDropzone
-                label="전월 데이터 (기준)"
-                description="이전 달 처방 데이터를 업로드하세요"
+                label={t.baselineLabel}
+                description={t.baselineDesc}
                 file={baselineFile}
                 onFileSelect={setBaselineFile}
                 disabled={false}
               />
               <FileDropzone
-                label="당월 데이터 (검수 대상)"
-                description="이번 달 배포 예정 데이터를 업로드하세요"
+                label={t.targetLabel}
+                description={t.targetDesc}
                 file={targetFile}
                 onFileSelect={setTargetFile}
                 disabled={false}
@@ -180,15 +180,15 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center gap-3">
               <Button onClick={handleNext} disabled={!baselineFile || !targetFile} className="min-w-32">
-                다음: 컬럼 매핑
+                {t.nextButton}
               </Button>
-              <span className="text-xs text-slate-400">CSV, XLSX, XLS 파일 지원 · 최대 50MB</span>
+              <span className="text-xs text-slate-400">{t.fileHint}</span>
             </div>
             <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-700">
-              <strong>테스트용 샘플 데이터:</strong>{' '}
-              <a href="/sample-data/baseline-sample.csv" download className="underline">전월 샘플</a>{' '}
+              <strong>{t.sampleDataLabel}</strong>{' '}
+              <a href="/sample-data/baseline-sample.csv" download className="underline">{t.baselineSample}</a>{' '}
               /{' '}
-              <a href="/sample-data/target-sample.csv" download className="underline">당월 샘플</a>
+              <a href="/sample-data/target-sample.csv" download className="underline">{t.targetSample}</a>
             </div>
           </div>
         )}
@@ -231,7 +231,7 @@ export default function DashboardPage() {
                 {/* Summary */}
                 <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible"
                   className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-4">검수 결과 요약</h2>
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4">{t.summaryTitle}</h2>
                   <SummaryCards
                     total={result.summary.total}
                     normal={result.summary.normal}
@@ -239,13 +239,18 @@ export default function DashboardPage() {
                     danger={result.summary.danger}
                     baselinePeriod={result.baseline_period}
                     targetPeriod={result.target_period}
+                    prevLabel={t.prevLabel}
+                    currLabel={t.currLabel}
+                    totalLabel={t.totalItems}
+                    normalLabel={t.statusNormal}
+                    warningLabel={t.statusWarning}
+                    dangerLabel={t.statusDanger}
                   />
                 </motion.div>
 
                 {(result.skipped_rows.baseline > 0 || result.skipped_rows.target > 0) && (
                   <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
-                    파싱 제외된 행: 전월 {result.skipped_rows.baseline}건, 당월 {result.skipped_rows.target}건
-                    (약품 코드 누락 또는 비정상 처방량)
+                    {t.skippedRows.replace('{baseline}', String(result.skipped_rows.baseline)).replace('{target}', String(result.skipped_rows.target))}
                   </div>
                 )}
 
@@ -262,13 +267,13 @@ export default function DashboardPage() {
                 <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible"
                   className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800">상세 검수 결과</h2>
+                    <h2 className="text-lg font-semibold text-gray-800">{t.detailTitle}</h2>
                     <ReportDownloadButton uploadResult={result} aiResults={aiResults} />
                   </div>
                   <Tabs defaultValue="table">
                     <TabsList className="mb-4">
-                      <TabsTrigger value="table">테이블 뷰</TabsTrigger>
-                      <TabsTrigger value="chart">차트 뷰</TabsTrigger>
+                      <TabsTrigger value="table">{t.tableView}</TabsTrigger>
+                      <TabsTrigger value="chart">{t.chartView}</TabsTrigger>
                     </TabsList>
                     <TabsContent value="table">
                       <div className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4 overflow-x-auto">

@@ -72,6 +72,10 @@ interface QAState {
   setStatus: (status: AsyncStatus, error?: string) => void;
   /** 전체 상태 초기화 (새로 검수하기) */
   reset: () => void;
+  /** 현재 언어 */
+  lang: 'ko' | 'en';
+  /** 언어 전환 */
+  setLang: (lang: 'ko' | 'en') => void;
 }
 
 // ────────────────────────────────────────────────────────────
@@ -89,6 +93,7 @@ const initialState = {
   isDemoMode: false,
   status: 'idle' as AsyncStatus,
   error: null,
+  lang: 'ko' as 'ko' | 'en',
 };
 
 // ────────────────────────────────────────────────────────────
@@ -132,6 +137,8 @@ export const useQAStore = create<QAState>((set) => ({
   setStatus: (status, error = null) => set({ status, error }),
 
   reset: () => set({ ...initialState, aiResults: new Map() }),
+
+  setLang: (lang) => set({ lang }),
 }));
 
 // ────────────────────────────────────────────────────────────

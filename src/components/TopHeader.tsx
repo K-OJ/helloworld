@@ -2,8 +2,9 @@
 
 import { useTheme } from 'next-themes';
 import { Sun, Moon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useQAStore } from '@/store/useQAStore';
 
 /**
  * TopHeader — 다국어 토글 + 다크 모드 토글
@@ -11,14 +12,15 @@ import { Button } from '@/components/ui/button';
  */
 export function TopHeader() {
   const { theme, setTheme } = useTheme();
-  const [lang, setLang] = useState<'ko' | 'en'>('ko');
+  const lang = useQAStore((s) => s.lang);
+  const setLang = useQAStore((s) => s.setLang);
   const [mounted, setMounted] = useState(false);
 
   // next-themes SSR hydration mismatch 방지
   useEffect(() => setMounted(true), []);
 
   function toggleLang() {
-    setLang((prev) => (prev === 'ko' ? 'en' : 'ko'));
+    setLang(lang === 'ko' ? 'en' : 'ko');
   }
 
   function toggleTheme() {

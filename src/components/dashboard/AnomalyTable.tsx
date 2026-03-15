@@ -8,6 +8,7 @@ import { ExternalLink, Save } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
 import type { AnomalyItem, AiAnalysisResult, Severity, AiClassification } from '@/lib/types';
 import { AI_CLASSIFICATION_LABELS } from '@/lib/constants';
+import { useLang } from '@/hooks/useLang';
 
 const PAGE_SIZE = 20;
 
@@ -26,6 +27,7 @@ type Override =
   | { status: 'modified'; classification: AiClassification };
 
 export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetryItem }: AnomalyTableProps) {
+  const { t } = useLang();
   const [severityFilter, setSeverityFilter] = useState<Severity | 'all'>('all');
   const [sortKey, setSortKey] = useState<SortKey>('absolute_change');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
@@ -102,41 +104,41 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
           className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 rounded-lg bg-gray-900 px-4 py-2.5 text-sm text-white shadow-lg flex items-center gap-2"
         >
           <Save className="h-3.5 w-3.5 text-green-400" />
-          필터 상태가 저장되었습니다.
+          {t.saveViewToast}
         </div>
       )}
 
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-sm text-gray-500">
-          총 <strong>{filtered.length.toLocaleString()}</strong>건
+          {t.totalCountText.replace('{count}', filtered.length.toLocaleString())}
           {overrides.size > 0 && (
             <span className="ml-2 text-xs text-blue-600">
-              ({Array.from(overrides.values()).filter(o => o.status === 'approved').length}건 승인 /
-              {' '}{Array.from(overrides.values()).filter(o => o.status === 'modified').length}건 수정)
+              ({t.approvedCount.replace('{n}', String(Array.from(overrides.values()).filter(o => o.status === 'approved').length))} /
+              {' '}{t.modifiedCount.replace('{n}', String(Array.from(overrides.values()).filter(o => o.status === 'modified').length))})
             </span>
           )}
         </p>
         <div className="flex items-center gap-2">
           <Select value={severityFilter} onValueChange={(v) => { setSeverityFilter(v as Severity | 'all'); setPage(1); }}>
             <SelectTrigger className="w-32">
-              <SelectValue placeholder="전체" />
+              <SelectValue placeholder={t.filterAll} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">전체</SelectItem>
-              <SelectItem value="danger">위험</SelectItem>
-              <SelectItem value="warning">경고</SelectItem>
-              <SelectItem value="normal">정상</SelectItem>
+              <SelectItem value="all">{t.filterAll}</SelectItem>
+              <SelectItem value="danger">{t.filterDanger}</SelectItem>
+              <SelectItem value="warning">{t.filterWarning}</SelectItem>
+              <SelectItem value="normal">{t.filterNormal}</SelectItem>
             </SelectContent>
           </Select>
           <Button
             variant="outline"
             size="sm"
             onClick={handleSaveView}
-            aria-label="현재 필터 뷰 저장"
+            aria-label={t.saveViewButton}
             className="h-9 gap-1.5 text-xs text-slate-600"
           >
             <Save className="h-3.5 w-3.5" />
-            필터 뷰 저장
+            {t.saveViewButton}
           </Button>
         </div>
       </div>
@@ -145,26 +147,26 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
-              <TableHead>약품명</TableHead>
-              <TableHead>병원코드</TableHead>
+              <TableHead>{t.colDrugName}</TableHead>
+              <TableHead>{t.colHospCode}</TableHead>
               <TableHead className="cursor-pointer" onClick={() => toggleSort('baseline_volume')}>
-                전월 처방량 <SortIcon k="baseline_volume" />
+                {t.colPrevVol} <SortIcon k="baseline_volume" />
               </TableHead>
               <TableHead className="cursor-pointer" onClick={() => toggleSort('target_volume')}>
-                당월 처방량 <SortIcon k="target_volume" />
+                {t.colCurrVol} <SortIcon k="target_volume" />
               </TableHead>
               <TableHead className="cursor-pointer" onClick={() => toggleSort('change_pct')}>
-                변동률 <SortIcon k="change_pct" />
+                {t.colChangeRate} <SortIcon k="change_pct" />
               </TableHead>
-              <TableHead>심각도</TableHead>
-              <TableHead>AI 판단</TableHead>
+              <TableHead>{t.colSeverity}</TableHead>
+              <TableHead>{t.colAiDecision}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {pageItems.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center text-gray-400 py-8">
-                  해당 조건의 데이터가 없습니다.
+                  {t.noData}
                 </TableCell>
               </TableRow>
             ) : (
@@ -211,14 +213,14 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
                       {ai ? (
                         <div>
                           {override?.status === 'approved' && (
-                            <span className="inline-block mb-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">✓ 승인됨</span>
+                            <span className="inline-block mb-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">{t.approvedBadge}</span>
                           )}
                           {override?.status === 'modified' && (
-                            <span className="inline-block mb-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">수정됨</span>
+                            <span className="inline-block mb-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{t.modifiedBadge}</span>
                           )}
                           <div>
                             {isMock && (
-                              <span className="inline-block mr-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">예측</span>
+                              <span className="inline-block mr-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">{t.mockBadge}</span>
                             )}
                             {override?.status === 'modified' ? (
                               <>
@@ -231,17 +233,17 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
                             <span className="ml-1 text-gray-400">({Math.round(ai.confidence * 100)}%)</span>
                           </div>
                           <p className="mt-0.5 text-gray-500 line-clamp-1">{ai.explanation}</p>
-                          <span className="text-blue-400 text-xs">{isExpanded ? '▲ 접기' : '▼ 상세보기'}</span>
+                          <span className="text-blue-400 text-xs">{isExpanded ? t.collapseLabel : t.expandLabel}</span>
                         </div>
                       ) : analysisFailed && item.severity !== 'normal' ? (
                         <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
-                          <span className="text-amber-500 text-xs">⚠ 분석 지연</span>
+                          <span className="text-amber-500 text-xs">{t.analysisDelayed}</span>
                           {onRetryItem && (
                             <button
                               className="text-xs text-blue-600 underline hover:text-blue-800"
                               onClick={() => onRetryItem(item)}
                             >
-                              재분석 요청
+                              {t.retryAnalysis}
                             </button>
                           )}
                         </div>
@@ -255,11 +257,11 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
                       <TableCell colSpan={7} className="py-4 px-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-4">
                           <div>
-                            <p className="font-medium text-gray-700 mb-1">📋 AI 분석 원인</p>
+                            <p className="font-medium text-gray-700 mb-1">{t.aiCauseTitle}</p>
                             <p className="text-gray-600">{ai.explanation}</p>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-700 mb-1">✅ 권장 조치</p>
+                            <p className="font-medium text-gray-700 mb-1">{t.aiActionTitle}</p>
                             <p className="text-blue-700 bg-blue-50 rounded p-2 border border-blue-100">{ai.recommended_action}</p>
                             {ai.action_url && ai.action_label && (
                               <a
@@ -278,19 +280,19 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
 
                         {/* Human-in-the-loop 검토 */}
                         <div className="border-t border-blue-200 pt-3">
-                          <p className="text-xs font-semibold text-gray-600 mb-2">실무자 검토</p>
+                          <p className="text-xs font-semibold text-gray-600 mb-2">{t.reviewTitle}</p>
                           {override?.status === 'approved' && (
                             <div className="flex items-center gap-2">
-                              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">✓ AI 판단을 승인했습니다</span>
-                              <button className="text-xs text-gray-400 underline" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>취소</button>
+                              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">{t.approvedMsg}</span>
+                              <button className="text-xs text-gray-400 underline" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>{t.cancelButton}</button>
                             </div>
                           )}
                           {override?.status === 'modified' && (
                             <div className="flex items-center gap-2">
                               <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700">
-                                수정됨: {AI_CLASSIFICATION_LABELS[override.classification]}
+                                {t.modifiedBadge}: {AI_CLASSIFICATION_LABELS[override.classification]}
                               </span>
-                              <button className="text-xs text-gray-400 underline" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>취소</button>
+                              <button className="text-xs text-gray-400 underline" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>{t.cancelButton}</button>
                             </div>
                           )}
                           {!override && (
@@ -301,11 +303,11 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
                                 className="h-8 border-green-300 text-green-700 hover:bg-green-50"
                                 onClick={() => handleApprove(key)}
                               >
-                                ✓ AI 판단 승인
+                                {t.approveButton}
                               </Button>
                               <Select onValueChange={(v) => handleModify(key, v as AiClassification)}>
                                 <SelectTrigger className="h-8 w-44 border-amber-300 text-amber-700 text-xs">
-                                  <SelectValue placeholder="원인 수정..." />
+                                  <SelectValue placeholder={t.modifyPlaceholder} />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {Object.entries(AI_CLASSIFICATION_LABELS).map(([val, label]) => (
@@ -333,7 +335,7 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
           >
-            이전
+            {t.prevPage}
           </button>
           <span className="text-gray-600">{page} / {totalPages}</span>
           <button
@@ -341,7 +343,7 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
             disabled={page === totalPages}
             onClick={() => setPage((p) => p + 1)}
           >
-            다음
+            {t.nextPage}
           </button>
         </div>
       )}
