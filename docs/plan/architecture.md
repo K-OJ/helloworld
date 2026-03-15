@@ -125,3 +125,78 @@ dashboard/page.tsx
 1. **서버/클라이언트 경계 명확화**: XLSX, PapaParse의 환경별 동작 차이를 모듈 분리로 해결
 2. **점진적 기능 노출**: 규칙 검수(필수) → AI 분석(선택) → 보고서(선택) 순으로 의존성 없는 단계 설계
 3. **Fallback 우선**: AI API 장애 시에도 규칙 검수 결과와 Mock 분석으로 서비스 연속성 보장
+
+---
+
+## 에러 처리 전략
+
+### 전역 에러 분류
+
+| 레이어 | 에러 유형 | 처리 방식 |
+|---|---|---|
+| API Route | 입력값 검증 실패 | `400 Bad Request` + 에러 메시지 JSON 반환 |
+| API Route | AI API 호출 실패 | Mock 분석 fallback + `is_mock: true` 플래그 |
+| API Route | 예기치 못한 서버 오류 | `500 Internal Server Error` + `console.error` 로깅 |
+| Client | fetch 네트워크 오류 | try/catch → UI 에러 메시지 표시 |
+| Client | 파일 파싱 오류 | 오류 행 수 카운트 후 결과에 포함 (`skipped_rows`) |
+
+### API 상태 코드 규격
+
+```
+200 OK           — 정상 처리
+400 Bad Request  — 필수 파라미터 누락, 형식 오류, 빈 파일
+500 Server Error — 서버 내부 오류 (AI API 장애 제외, fallback 처리)
+```
+
+### 에러 응답 형식
+
+```typescript
+// 에러 응답 공통 포맷
+{ error: string }
+
+// AI fallback 응답 포맷 (200으로 반환)
+{ results: AiAnalysisResult[], is_mock: true, error_detail: string }
+```
+
+### 로깅 전략
+
+- **서버**: `console.error('[모듈명] 에러 설명:', errorMessage)` — Vercel 함수 로그에서 추적 가능
+- **클라이언트**: 사용자 친화적 에러 메시지만 UI에 노출, 기술적 스택은 숨김
+- **민감정보**: API 키, 처방 원본 데이터는 로그에 포함되지 않도록 명시적 제외
+
+---
+
+## 보안 고려사항
+
+### API 키 관리
+
+| 항목 | 구현 방식 |
+|---|---|
+| `ANTHROPIC_API_KEY` | Vercel Environment Variables에만 저장, 코드에 하드코딩 금지 |
+| 로컬 개발 | `.env.local` (`.gitignore`에 포함) |
+| CI/CD | GitHub Secrets (`${{ secrets.ANTHROPIC_API_KEY }}`) |
+| 클라이언트 노출 | `NEXT_PUBLIC_` 접두사 없이 서버 전용 환경변수로만 사용 |
+
+### 입력값 검증
+
+```typescript
+// /api/upload: 파일 검증
+- MIME 타입: text/csv, application/vnd.ms-excel, application/vnd.openxmlformats...
+- 파일 크기: 최대 50MB (MAX_FILE_SIZE_BYTES 상수)
+- 필수 컬럼 또는 컬럼 매핑 존재 여부 확인
+
+// /api/analyze: 요청 바디 검증
+- anomalies 배열 존재 및 비어있지 않음 확인
+- 각 항목 필수 필드(drug_id, hospital_code 등) 유효성 검사
+
+// /api/chat: 메시지 검증
+- messages 배열 유효성 확인
+- 컨텍스트 데이터 크기 제한 (토큰 초과 방지)
+```
+
+### 데이터 프라이버시
+
+- **파일 비저장**: 업로드된 원본 파일은 서버 메모리에서만 처리되며 디스크에 저장되지 않음
+- **AI 전송 최소화**: Claude API에는 약품코드·변동률 등 집계 통계만 전송, 병원명·환자 정보 미포함
+- **쿠키 보안**: `autoqa_auth` 쿠키는 `SameSite=Lax`, `path=/` 설정으로 CSRF 방어
+- **인증 가드**: Next.js Middleware가 `/dashboard` 전체 경로를 쿠키 기반으로 보호

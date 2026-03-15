@@ -24,7 +24,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run unit tests
+      - name: Run unit & integration tests
         run: npm test
 
       - name: Coverage report
@@ -67,7 +67,18 @@ jobs:
       - name: Wait for Vercel deployment
         run: sleep 30
 
-      - name: Health check - Login page
+      - name: Smoke test - Health check endpoint
+        run: |
+          RESPONSE=$(curl -sf "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/api/health")
+          echo "Health response: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"status":"ok"'; then
+            echo "✅ /api/health OK"
+          else
+            echo "❌ /api/health failed"
+            exit 1
+          fi
+
+      - name: Smoke test - Login page (200 OK)
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
             "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/login")
@@ -76,31 +87,30 @@ jobs:
             echo "❌ Login page returned $STATUS"
             exit 1
           fi
-          echo "✅ Login page OK"
+          echo "✅ /login OK"
 
-      - name: Health check - Dashboard redirect (unauthenticated)
+      - name: Smoke test - Dashboard redirect (unauthenticated → 302)
         run: |
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
-            -L --max-redirs 0 \
+            --max-redirs 0 \
             "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/dashboard")
           echo "Dashboard (unauth) HTTP status: $STATUS"
-          # 302 redirect to login expected
           if [ "$STATUS" != "302" ] && [ "$STATUS" != "307" ] && [ "$STATUS" != "200" ]; then
             echo "❌ Unexpected status $STATUS"
             exit 1
           fi
-          echo "✅ Dashboard redirect OK"
+          echo "✅ /dashboard redirect OK"
 
-      - name: Health check - API analyze (mock mode)
+      - name: Smoke test - API analyze (mock mode response)
         run: |
           RESPONSE=$(curl -s -X POST \
             -H "Content-Type: application/json" \
-            -d '{"anomalies":[{"drug_id":"TEST","drug_name":"테스트약","hospital_code":"H001","baseline_volume":100,"target_volume":200,"change_pct":100,"absolute_change":100,"severity":"danger","rule_triggered":"volume_increase_gt_50"}]}' \
+            -d '{"anomalies":[{"drug_id":"SMOKE","drug_name":"스모크테스트약","hospital_code":"H001","baseline_volume":100,"target_volume":200,"change_pct":100,"absolute_change":100,"severity":"danger","rule_triggered":"volume_increase_gt_50"}]}' \
             "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/api/analyze")
           echo "API response: $RESPONSE"
           if echo "$RESPONSE" | grep -q '"results"'; then
-            echo "✅ API /analyze OK"
+            echo "✅ /api/analyze OK"
           else
-            echo "❌ API /analyze failed"
+            echo "❌ /api/analyze failed"
             exit 1
           fi
