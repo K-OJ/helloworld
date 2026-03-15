@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '@/app/api/health/route';
 import { POST } from '@/app/api/analyze/route';
 import { NextRequest } from 'next/server';
@@ -73,6 +73,64 @@ describe('POST /api/analyze — 입력 검증', () => {
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body.error).toContain('필수 필드');
+  });
+});
+
+// ─────────────────────────────────────────────
+// POST /api/analyze — Claude API Mocking 통합 테스트
+// ─────────────────────────────────────────────
+vi.mock('@ai-sdk/anthropic', () => ({
+  createAnthropic: () => () => 'mocked-model',
+  anthropic: () => 'mocked-model',
+}));
+
+vi.mock('ai', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('ai')>();
+  return {
+    ...actual,
+    generateObject: vi.fn().mockResolvedValue({
+      object: {
+        results: [
+          {
+            drug_id: 'D001',
+            classification: 'market_trend',
+            confidence_score: 0.87,
+            reason: '해당 약품의 계절성 처방 패턴으로 인한 정상 증가',
+            action_url: 'https://www.hira.or.kr',
+          },
+        ],
+      },
+    }),
+  };
+});
+
+describe('POST /api/analyze — Claude API Mocking 통합 테스트', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('Claude API 응답이 모킹되면 200과 results 배열을 반환한다', async () => {
+    const res = await POST(makeAnalyzeRequest({ anomalies: [validAnomaly] }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(Array.isArray(body.results)).toBe(true);
+    expect(body.results.length).toBeGreaterThan(0);
+  });
+
+  it('모킹된 결과에 drug_id, classification, reason이 포함된다', async () => {
+    const res = await POST(makeAnalyzeRequest({ anomalies: [validAnomaly] }));
+    const body = await res.json();
+    const result = body.results[0];
+    expect(result.drug_id).toBeTruthy();
+    expect(result.classification).toBeTruthy();
+    expect(result.reason).toBeTruthy();
+  });
+
+  it('action_url이 유효한 URL 형식이다', async () => {
+    const res = await POST(makeAnalyzeRequest({ anomalies: [validAnomaly] }));
+    const body = await res.json();
+    const result = body.results[0];
+    expect(result.action_url).toMatch(/^https?:\/\//);
   });
 });
 

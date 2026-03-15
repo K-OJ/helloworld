@@ -94,7 +94,7 @@
 | API 통합 테스트 (`__tests__/api.test.ts`) | ✅ |
 | 컴포넌트 테스트 (`__tests__/components.test.tsx`) | ✅ |
 | 헬스 체크 API (`/api/health`) | ✅ |
-| E2E 테스트 (Playwright) | ⬜ |
+| E2E 테스트 (Playwright) | ✅ |
 
 ### 주요 의사결정 및 이슈 해결
 
@@ -119,7 +119,7 @@
 | 다중 파일 배치 처리 | ⬜ |
 | 알림 기능 (Slack / 이메일) | ⬜ |
 | 대시보드 커스텀 임계값 설정 | ⬜ |
-| E2E 테스트 (Playwright) | ⬜ |
+| E2E 테스트 (Playwright) | ✅ |
 
 ---
 
