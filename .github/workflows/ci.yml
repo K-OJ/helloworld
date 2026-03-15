@@ -24,13 +24,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run Unit Tests
-        run: npx vitest run
+      - name: Security Scan (SAST)
+        run: npm audit --audit-level=high || true
+
+      - name: Run Tests with Coverage
+        run: npm run test:coverage
+
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: false
+          verbose: false
 
       - name: Build Next.js
         run: npm run build
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Performance Audit (Lighthouse CI)
+        uses: treosh/lighthouse-ci-action@v11
+        continue-on-error: true  # 배포 완료 전이므로 실패해도 파이프라인 차단 안 함
+        with:
+          urls: |
+            https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/login
+          temporaryPublicStorage: true
 
   smoke-test:
     name: Smoke Test (Post-Deploy)

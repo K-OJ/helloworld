@@ -10,47 +10,55 @@ interface SummaryCardsProps {
 }
 
 export function SummaryCards({ total, normal, warning, danger, baselinePeriod, targetPeriod }: SummaryCardsProps) {
+  const normalPct = total > 0 ? Math.round((normal / total) * 100) : 0;
+  const warningPct = total > 0 ? Math.round((warning / total) * 100) : 0;
+  const dangerPct = total > 0 ? Math.round((danger / total) * 100) : 0;
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
+      <div className="flex items-center gap-2 text-sm text-gray-500" aria-label={`비교 기간: 전월 ${baselinePeriod} 대비 당월 ${targetPeriod}`}>
         <span>전월: <strong className="text-gray-700">{baselinePeriod}</strong></span>
-        <span>→</span>
+        <span aria-hidden="true">→</span>
         <span>당월: <strong className="text-gray-700">{targetPeriod}</strong></span>
       </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+      <div
+        className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+        role="region"
+        aria-label="검수 결과 요약 지표"
+      >
+        <Card aria-label={`전체 항목 ${total.toLocaleString()}건`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-gray-500">전체 항목</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-gray-900">{total.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-gray-900" aria-live="polite">{total.toLocaleString()}</p>
           </CardContent>
         </Card>
-        <Card className="border-green-200 bg-green-50/50">
+        <Card className="border-green-200 bg-green-50/50" aria-label={`정상 ${normal.toLocaleString()}건, 전체의 ${normalPct}%`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-green-600">정상</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-700">{normal.toLocaleString()}</p>
-            <p className="text-xs text-green-500 mt-1">{total > 0 ? Math.round((normal / total) * 100) : 0}%</p>
+            <p className="text-3xl font-bold text-green-700" aria-live="polite">{normal.toLocaleString()}</p>
+            <p className="text-xs text-green-500 mt-1" aria-hidden="true">{normalPct}%</p>
           </CardContent>
         </Card>
-        <Card className="border-amber-200 bg-amber-50/50">
+        <Card className="border-amber-200 bg-amber-50/50" aria-label={`경고 ${warning.toLocaleString()}건, 전체의 ${warningPct}%`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-amber-600">경고</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-amber-700">{warning.toLocaleString()}</p>
-            <p className="text-xs text-amber-500 mt-1">{total > 0 ? Math.round((warning / total) * 100) : 0}%</p>
+            <p className="text-3xl font-bold text-amber-700" aria-live="polite">{warning.toLocaleString()}</p>
+            <p className="text-xs text-amber-500 mt-1" aria-hidden="true">{warningPct}%</p>
           </CardContent>
         </Card>
-        <Card className="border-red-200 bg-red-50/50">
+        <Card className="border-red-200 bg-red-50/50" aria-label={`위험 ${danger.toLocaleString()}건, 전체의 ${dangerPct}%`}>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-red-600">위험</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-red-700">{danger.toLocaleString()}</p>
-            <p className="text-xs text-red-500 mt-1">{total > 0 ? Math.round((danger / total) * 100) : 0}%</p>
+            <p className="text-3xl font-bold text-red-700" aria-live="polite">{danger.toLocaleString()}</p>
+            <p className="text-xs text-red-500 mt-1" aria-hidden="true">{dangerPct}%</p>
           </CardContent>
         </Card>
       </div>

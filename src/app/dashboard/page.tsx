@@ -206,7 +206,11 @@ export default function DashboardPage() {
             )}
 
             {status === 'error' && error && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700">
+              <div
+                role="alert"
+                aria-live="assertive"
+                className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700"
+              >
                 <strong>오류:</strong> {error}
               </div>
             )}
@@ -256,9 +260,10 @@ export default function DashboardPage() {
                       <TabsTrigger value="chart">차트 뷰</TabsTrigger>
                     </TabsList>
                     <TabsContent value="table">
-                      <div className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4">
+                      <div className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4 overflow-x-auto">
                         <AnomalyBarChart items={result.items} />
                       </div>
+                      <div className="overflow-x-auto">
                       <AnomalyTable
                         items={result.items}
                         aiResults={aiResults}
@@ -266,6 +271,7 @@ export default function DashboardPage() {
                         isMock={isDemoMode}
                         onRetryItem={handleRetryItem}
                       />
+                      </div>
                     </TabsContent>
                     <TabsContent value="chart">
                       <ChangeChart items={result.items} />

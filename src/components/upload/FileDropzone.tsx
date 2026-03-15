@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, DragEvent, ChangeEvent } from 'react';
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface FileDropzoneProps {
@@ -9,16 +10,17 @@ interface FileDropzoneProps {
   file: File | null;
   onFileSelect: (file: File) => void;
   disabled?: boolean;
+  loading?: boolean;
 }
 
-export function FileDropzone({ label, description, file, onFileSelect, disabled }: FileDropzoneProps) {
+export function FileDropzone({ label, description, file, onFileSelect, disabled, loading }: FileDropzoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
 
   function handleDrop(e: DragEvent<HTMLDivElement>) {
     e.preventDefault();
     setIsDragging(false);
-    if (disabled) return;
+    if (disabled || loading) return;
     const dropped = e.dataTransfer.files[0];
     if (dropped) onFileSelect(dropped);
   }
@@ -28,16 +30,23 @@ export function FileDropzone({ label, description, file, onFileSelect, disabled 
     if (selected) onFileSelect(selected);
   }
 
+  const isInteractive = !disabled && !loading;
+
   return (
     <div
+      role="button"
+      tabIndex={isInteractive ? 0 : -1}
+      aria-label={file ? `${label}: ${file.name} 선택됨. 클릭하여 변경` : `${label} 파일 선택 — ${description}`}
+      aria-disabled={disabled || loading}
       className={cn(
         'relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed p-8 transition-all cursor-pointer',
         isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50/30',
         file && 'border-green-400 bg-green-50',
-        disabled && 'opacity-50 cursor-not-allowed'
+        (disabled || loading) && 'opacity-50 cursor-not-allowed'
       )}
-      onClick={() => !disabled && inputRef.current?.click()}
-      onDragOver={(e) => { e.preventDefault(); if (!disabled) setIsDragging(true); }}
+      onClick={() => isInteractive && inputRef.current?.click()}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); isInteractive && inputRef.current?.click(); } }}
+      onDragOver={(e) => { e.preventDefault(); if (isInteractive) setIsDragging(true); }}
       onDragLeave={() => setIsDragging(false)}
       onDrop={handleDrop}
     >
@@ -45,15 +54,22 @@ export function FileDropzone({ label, description, file, onFileSelect, disabled 
         ref={inputRef}
         type="file"
         accept=".csv,.xlsx,.xls"
+        aria-label={`${label} 파일 선택`}
         className="hidden"
         onChange={handleChange}
-        disabled={disabled}
+        disabled={disabled || loading}
       />
 
-      {file ? (
+      {loading ? (
+        <>
+          <Loader2 className="h-8 w-8 text-blue-500 animate-spin mb-3" aria-hidden="true" />
+          <p className="font-semibold text-blue-600">파일 처리 중...</p>
+          <p className="mt-1 text-sm text-blue-400">잠시 기다려 주세요</p>
+        </>
+      ) : file ? (
         <>
           <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
@@ -64,7 +80,7 @@ export function FileDropzone({ label, description, file, onFileSelect, disabled 
       ) : (
         <>
           <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-100">
-            <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
