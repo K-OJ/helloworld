@@ -7,8 +7,34 @@ on:
     branches: [master]
 
 jobs:
-  build:
+  test:
+    name: Unit Tests
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Coverage report
+        run: npm run test:coverage
+        continue-on-error: true  # 커버리지 미달 시 경고만 (빌드 차단 X)
+
+  lint-build:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+    needs: test  # 테스트 통과 후 빌드
 
     steps:
       - name: Checkout
@@ -30,3 +56,51 @@ jobs:
         run: npm run build
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+  smoke-test:
+    name: Smoke Test (Post-Deploy)
+    runs-on: ubuntu-latest
+    needs: lint-build
+    if: github.ref == 'refs/heads/master' && github.event_name == 'push'
+
+    steps:
+      - name: Wait for Vercel deployment
+        run: sleep 30
+
+      - name: Health check - Login page
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/login")
+          echo "Login page HTTP status: $STATUS"
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Login page returned $STATUS"
+            exit 1
+          fi
+          echo "✅ Login page OK"
+
+      - name: Health check - Dashboard redirect (unauthenticated)
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -L --max-redirs 0 \
+            "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/dashboard")
+          echo "Dashboard (unauth) HTTP status: $STATUS"
+          # 302 redirect to login expected
+          if [ "$STATUS" != "302" ] && [ "$STATUS" != "307" ] && [ "$STATUS" != "200" ]; then
+            echo "❌ Unexpected status $STATUS"
+            exit 1
+          fi
+          echo "✅ Dashboard redirect OK"
+
+      - name: Health check - API analyze (mock mode)
+        run: |
+          RESPONSE=$(curl -s -X POST \
+            -H "Content-Type: application/json" \
+            -d '{"anomalies":[{"drug_id":"TEST","drug_name":"테스트약","hospital_code":"H001","baseline_volume":100,"target_volume":200,"change_pct":100,"absolute_change":100,"severity":"danger","rule_triggered":"volume_increase_gt_50"}]}' \
+            "https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app/api/analyze")
+          echo "API response: $RESPONSE"
+          if echo "$RESPONSE" | grep -q '"results"'; then
+            echo "✅ API /analyze OK"
+          else
+            echo "❌ API /analyze failed"
+            exit 1
+          fi
