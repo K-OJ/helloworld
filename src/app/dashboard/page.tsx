@@ -16,6 +16,7 @@ import { AiInsightPanel } from '@/components/dashboard/AiInsightPanel';
 import { FloatingChat } from '@/components/FloatingChat';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
+import { useServerHealth } from '@/hooks/useServerHealth';
 import { readFileHeaders } from '@/lib/read-headers';
 import type { AiAnalysisResult, AnomalyItem, ColumnMapping } from '@/lib/types';
 
@@ -32,6 +33,7 @@ const fadeUp: Variants = {
 
 export default function DashboardPage() {
   const router = useRouter();
+  const { isHealthy } = useServerHealth();
 
   function handleLogout() {
     document.cookie = 'autoqa_auth=; path=/; max-age=0';
@@ -132,6 +134,13 @@ export default function DashboardPage() {
                   새로 검수하기
                 </Button>
               )}
+              <span
+                title={isHealthy ? '서버 헬스체크 정상' : '서버 상태 확인 중'}
+                className="hidden sm:flex items-center gap-1 text-xs text-slate-400"
+              >
+                <span className={`h-2 w-2 rounded-full ${isHealthy ? 'bg-green-400' : 'bg-slate-300'}`} />
+                {isHealthy ? '🟢 헬스체크 정상' : '확인 중'}
+              </span>
               <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-500 hover:text-red-600">
                 로그아웃
               </Button>
