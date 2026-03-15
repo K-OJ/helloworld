@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Save } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
 import type { AnomalyItem, AiAnalysisResult, Severity, AiClassification } from '@/lib/types';
 import { AI_CLASSIFICATION_LABELS } from '@/lib/constants';
@@ -32,6 +32,27 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
   const [page, setPage] = useState(1);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
   const [overrides, setOverrides] = useState<Map<string, Override>>(new Map());
+  const [saveToast, setSaveToast] = useState(false);
+
+  // 저장된 필터 뷰 복원
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('saved_filter_view');
+      if (saved) {
+        const { severityFilter: sf, sortKey: sk, sortDir: sd } = JSON.parse(saved);
+        if (sf) setSeverityFilter(sf);
+        if (sk) setSortKey(sk);
+        if (sd) setSortDir(sd);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  function handleSaveView() {
+    const currentFilters = { severityFilter, sortKey, sortDir };
+    localStorage.setItem('saved_filter_view', JSON.stringify(currentFilters));
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 2500);
+  }
 
   const filtered = useMemo(() => {
     let data = severityFilter === 'all' ? items : items.filter((i) => i.severity === severityFilter);
@@ -73,7 +94,19 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      {/* 필터 저장 Toast */}
+      {saveToast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 rounded-lg bg-gray-900 px-4 py-2.5 text-sm text-white shadow-lg flex items-center gap-2"
+        >
+          <Save className="h-3.5 w-3.5 text-green-400" />
+          필터 상태가 저장되었습니다.
+        </div>
+      )}
+
+      <div className="flex items-center justify-between gap-2 flex-wrap">
         <p className="text-sm text-gray-500">
           총 <strong>{filtered.length.toLocaleString()}</strong>건
           {overrides.size > 0 && (
@@ -83,17 +116,29 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
             </span>
           )}
         </p>
-        <Select value={severityFilter} onValueChange={(v) => { setSeverityFilter(v as Severity | 'all'); setPage(1); }}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="전체" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">전체</SelectItem>
-            <SelectItem value="danger">위험</SelectItem>
-            <SelectItem value="warning">경고</SelectItem>
-            <SelectItem value="normal">정상</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select value={severityFilter} onValueChange={(v) => { setSeverityFilter(v as Severity | 'all'); setPage(1); }}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="전체" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">전체</SelectItem>
+              <SelectItem value="danger">위험</SelectItem>
+              <SelectItem value="warning">경고</SelectItem>
+              <SelectItem value="normal">정상</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveView}
+            aria-label="현재 필터 뷰 저장"
+            className="h-9 gap-1.5 text-xs text-slate-600"
+          >
+            <Save className="h-3.5 w-3.5" />
+            필터 뷰 저장
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-md border overflow-x-auto">
@@ -136,8 +181,18 @@ export function AnomalyTable({ items, aiResults, analysisFailed, isMock, onRetry
                 return [
                   <TableRow
                     key={idx}
-                    className={`hover:bg-gray-50 cursor-pointer ${isExpanded ? 'bg-blue-50' : ''}`}
+                    tabIndex={0}
+                    role="button"
+                    aria-expanded={isExpanded}
+                    aria-label={`${item.drug_name || item.drug_id} 상세 분석 ${isExpanded ? '접기' : '펼치기'}`}
+                    className={`hover:bg-gray-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-inset ${isExpanded ? 'bg-blue-50' : ''}`}
                     onClick={() => setExpandedKey(isExpanded ? null : key)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setExpandedKey(isExpanded ? null : key);
+                      }
+                    }}
                   >
                     <TableCell>
                       <div className="font-medium">{item.drug_name || '-'}</div>

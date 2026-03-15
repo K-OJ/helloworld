@@ -17,6 +17,7 @@ import { FloatingChat } from '@/components/FloatingChat';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useServerHealth } from '@/hooks/useServerHealth';
+import { TopHeader } from '@/components/TopHeader';
 import { readFileHeaders } from '@/lib/read-headers';
 import type { AiAnalysisResult, AnomalyItem, ColumnMapping } from '@/lib/types';
 
@@ -141,6 +142,7 @@ export default function DashboardPage() {
                 <span className={`h-2 w-2 rounded-full ${isHealthy ? 'bg-green-400' : 'bg-slate-300'}`} />
                 {isHealthy ? '🟢 헬스체크 정상' : '확인 중'}
               </span>
+              <TopHeader />
               <Button variant="ghost" size="sm" onClick={handleLogout} className="text-slate-500 hover:text-red-600">
                 로그아웃
               </Button>
