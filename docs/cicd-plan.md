@@ -34,6 +34,19 @@
 
 ---
 
+## 1-1. 고급 자동화 파이프라인 스텝
+
+GitHub Actions 파이프라인에는 기본 빌드·배포를 넘어 다음 **4가지 고급 자동화 스텝**이 통합되어 있습니다.
+
+| 자동화 스텝 | 도구 | 설명 |
+|---|---|---|
+| **필수 테스트 통과** | `npm run test:coverage` | 단위·통합 테스트 45개 + V8 커버리지 추출. 실패 시 빌드·배포 전체 차단 |
+| **SAST 정적 보안 스캔** | `npm audit --audit-level=high` | High·Critical CVE 취약점 자동 탐지. 파이프라인 비차단(`\|\| true`) 경고 출력 |
+| **커버리지 자동 업로드** | `codecov/codecov-action@v4` | PR마다 커버리지 변화 추적, Codecov 배지 자동 갱신 |
+| **성능 모니터링** | `treosh/lighthouse-ci-action@v11` | 배포 후 Performance·Accessibility·SEO 점수 자동 측정 |
+
+---
+
 ## 2. GitHub Actions 스텝 상세
 
 ### `build-and-test` Job
