@@ -200,3 +200,26 @@ dashboard/page.tsx
 - **AI 전송 최소화**: Claude API에는 약품코드·변동률 등 집계 통계만 전송, 병원명·환자 정보 미포함
 - **쿠키 보안**: `autoqa_auth` 쿠키는 `SameSite=Lax`, `path=/` 설정으로 CSRF 방어
 - **인증 가드**: Next.js Middleware가 `/dashboard` 전체 경로를 쿠키 기반으로 보호
+
+
+
+## 4. 컴포넌트 간 책임 분리 명세 (Separation of Concerns)
+본 프로젝트는 유지보수성과 확장성을 극대화하기 위해 UI 렌더링(Presentation)과 비즈니스 로직(Domain)의 책임을 엄격하게 분리했습니다.
+
+* **View Components (`src/components/`)**: 오직 화면 렌더링과 사용자 입력 이벤트 처리만 담당합니다. (예: `FileDropzone`은 파일 읽기 로직을 모른 채 파일 객체만 상위로 전달, `SummaryCards`는 계산된 결과값만 props로 받아 시각화)
+* **Business Logic & Utilities (`src/lib/` & `src/utils/`)**: 파일 파싱(`parser.ts`), 규칙 기반 검수 알고리즘(`rule-engine.ts`) 등 데이터 가공과 판별 책임을 독점합니다. UI에 대한 의존성이 0%이므로 독립적인 단위 테스트가 가능합니다.
+* **API Routes (`src/app/api/`)**: 클라이언트와 AI 모델(Claude) 사이의 컨트롤러 역할을 합니다. 요청 데이터의 유효성을 검증하고, 외부 API 통신을 수행하며, 표준화된 에러 규격으로 응답합니다.
+
+## 5. 전사적 에러 처리 전략 (Error Handling Strategy)
+예측 불가능한 대용량 데이터 파싱과 외부 LLM API 통신 과정에서 시스템 다운을 방지하기 위한 3단계 에러 방어선(Defense in Depth)을 구축했습니다.
+
+1. **클라이언트 입력단 (Validation Boundary):** Zod 스키마를 활용하여 업로드된 CSV 파일의 헤더 및 데이터 타입이 제약 데이터 규격에 맞는지 1차 검증하고, 실패 시 직관적인 Toast 에러 메시지를 반환합니다.
+2. **비동기 API 통신단 (Graceful Degradation):** Claude API 통신 중 타임아웃이나 크레딧 고갈(`429 Too Many Requests` 등) 발생 시, 앱이 크래시되지 않도록 `try-catch`로 묶고 Fallback 데이터(규칙 기반의 기본 검수 결과)만이라도 사용자에게 안전하게 반환합니다.
+3. **글로벌 에러 캡처 (Error Boundary):** React의 `error.tsx` 컴포넌트를 최상단에 배치하여, 렌더링 중 발생하는 런타임 에러를 포착하고 "데이터 처리 중 문제가 발생했습니다. 재시도 해주세요"라는 안전한 UI를 표출합니다.
+
+## 6. 보안 및 데이터 보호 고려사항 (Security Considerations)
+유비케어의 민감한 제약 처방 데이터를 다루는 시스템으로서, 데이터 유출 및 외부 공격을 차단하기 위한 보안 아키텍처를 적용했습니다.
+
+* **인프라 및 API 보안:** Anthropic API Key(`ANTHROPIC_API_KEY`) 등 핵심 인증 정보는 클라이언트(브라우저)에 절대 노출되지 않도록 Next.js 서버 사이드(API Routes)에서만 접근 가능한 환경 변수로 철저히 격리했습니다.
+* **데이터 무상태성 (Stateless Data Processing):** 업로드된 처방 데이터(CSV)는 서버 디스크나 별도의 DB에 영구 저장(Persistence)되지 않습니다. API 메모리 상에서 이상치 분석만 수행한 뒤 즉시 휘발되도록 설계하여 데이터 탈취 리스크를 원천 차단했습니다.
+* **입력값 무결성 검증 (Input Sanitization):** 클라이언트에서 넘어온 페이로드를 서버 API(`route.ts`)에서 파싱할 때, 악의적인 스크립트(XSS)나 비정상적인 거대 쿼리가 없는지 검사한 후 LLM 컨텍스트로 주입합니다.
