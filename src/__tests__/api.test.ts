@@ -123,7 +123,7 @@ describe('POST /api/analyze — Claude API Mocking 통합 테스트', () => {
     const result = body.results[0];
     expect(result.drug_id).toBeTruthy();
     expect(result.classification).toBeTruthy();
-    expect(result.reason).toBeTruthy();
+    expect(result.explanation).toBeTruthy();
   });
 
   it('action_url이 유효한 URL 형식이다', async () => {
