@@ -1,7 +1,7 @@
 import Papa from 'papaparse';
 import * as XLSX from 'xlsx';
 import type { ParseResult, PrescriptionRecord, ColumnMapping } from './types';
-import { MAX_FILE_SIZE_BYTES, REQUIRED_COLUMNS } from './constants';
+import { MAX_FILE_SIZE_BYTES, REQUIRED_COLUMNS, getErrorMessage } from './constants';
 
 function normalizeRow(row: Record<string, unknown>, mapping?: ColumnMapping): PrescriptionRecord | null {
   // Normalize column names (trim, lowercase)
@@ -50,7 +50,7 @@ function validateColumns(headers: string[]): string | null {
 
 export async function parseCSV(file: File, mapping?: ColumnMapping): Promise<ParseResult> {
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return { records: [], skipped_rows: 0, errors: [`파일 크기가 50MB를 초과합니다 (${(file.size / 1024 / 1024).toFixed(1)}MB)`] };
+    return { records: [], skipped_rows: 0, errors: [getErrorMessage('fileTooLarge')] };
   }
 
   const text = await file.text();
@@ -95,7 +95,7 @@ export async function parseCSV(file: File, mapping?: ColumnMapping): Promise<Par
 
 export async function parseExcel(file: File, mapping?: ColumnMapping): Promise<ParseResult> {
   if (file.size > MAX_FILE_SIZE_BYTES) {
-    return { records: [], skipped_rows: 0, errors: [`파일 크기가 50MB를 초과합니다 (${(file.size / 1024 / 1024).toFixed(1)}MB)`] };
+    return { records: [], skipped_rows: 0, errors: [getErrorMessage('fileTooLarge')] };
   }
 
   try {
@@ -139,5 +139,5 @@ export async function parseFile(file: File, mapping?: ColumnMapping): Promise<Pa
   const ext = file.name.split('.').pop()?.toLowerCase();
   if (ext === 'csv') return parseCSV(file, mapping);
   if (ext === 'xlsx' || ext === 'xls') return parseExcel(file, mapping);
-  return { records: [], skipped_rows: 0, errors: [`지원하지 않는 파일 형식입니다: .${ext}. CSV 또는 Excel 파일을 업로드해 주세요.`] };
+  return { records: [], skipped_rows: 0, errors: [getErrorMessage('invalidFormat')] };
 }

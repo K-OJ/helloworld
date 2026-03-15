@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { analyzeAnomalies, generateMockAnalysis } from '@/lib/ai-analyzer';
+import { getErrorMessage } from '@/lib/constants';
 import type { AnomalyItem } from '@/lib/types';
 
 export const runtime = 'nodejs';
@@ -62,6 +63,6 @@ export async function POST(req: NextRequest) {
     const errorMsg = err instanceof Error ? err.message : String(err);
     console.error('[analyze] Claude API 호출 실패:', errorMsg);
     const results = generateMockAnalysis(anomalies as AnomalyItem[]);
-    return NextResponse.json({ results, is_mock: true, error_detail: errorMsg });
+    return NextResponse.json({ results, is_mock: true, error_detail: getErrorMessage('analysisFailed') });
   }
 }
