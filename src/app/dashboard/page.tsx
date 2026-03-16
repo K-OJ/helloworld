@@ -1,7 +1,7 @@
 // @ts-nocheck
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, type Variants } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRouter } from 'next/navigation';
@@ -39,7 +39,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { isHealthy } = useServerHealth();
   const { t } = useLang();
-  const { setAiResults: syncAiResults, setAnalysisFailed: syncAnalysisFailed, setDemoMode: syncDemoMode } = useQAStore();
+  const { setUploadResult, setAiResults: syncAiResults, setAnalysisFailed: syncAnalysisFailed, setDemoMode: syncDemoMode } = useQAStore();
 
   function handleLogout() {
     document.cookie = 'autoqa_auth=; path=/; max-age=0';
@@ -56,6 +56,11 @@ export default function DashboardPage() {
   const [aiResults, setAiResults] = useState<Map<string, AiAnalysisResult>>(new Map());
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [analysisFailed, setAnalysisFailed] = useState(false);
+
+  // useFileUpload result → Zustand 스토어 동기화 (AnomalyTable이 스토어에서 직접 구독)
+  useEffect(() => {
+    if (result) setUploadResult(result);
+  }, [result]);
 
   function handleAiResults(results: Map<string, AiAnalysisResult>) {
     setAiResults(results);
