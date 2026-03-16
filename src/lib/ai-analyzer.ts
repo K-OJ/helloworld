@@ -6,11 +6,13 @@ import { AI_BATCH_SIZE } from './constants';
 
 const AiAnalysisSchema = jsonSchema({
   type: 'object',
+  additionalProperties: false,
   properties: {
     analyses: {
       type: 'array',
       items: {
         type: 'object',
+        additionalProperties: false,
         properties: {
           drug_id: { type: 'string' },
           drug_name: { type: 'string' },
