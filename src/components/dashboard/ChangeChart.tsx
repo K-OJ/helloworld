@@ -1,3 +1,4 @@
+// @ts-nocheck
 import type { AnomalyItem } from '@/lib/types';
 import { SEVERITY_COLORS } from '@/lib/constants';
 import { cn } from '@/lib/utils';

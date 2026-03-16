@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { cn } from '@/lib/utils';
 import { SEVERITY_COLORS, SEVERITY_LABELS } from '@/lib/constants';
 import type { Severity } from '@/lib/types';

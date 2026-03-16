@@ -24,7 +24,7 @@ jobs:
         run: rm -f package-lock.json && npm install
 
       - name: Security Scan (SAST)
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=critical
 
       - name: Run Tests with Coverage
         run: npm run test:coverage

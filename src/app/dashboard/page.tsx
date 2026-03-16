@@ -18,6 +18,7 @@ import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useServerHealth } from '@/hooks/useServerHealth';
 import { useLang } from '@/hooks/useLang';
+import { useQAStore } from '@/store/useQAStore';
 import { TopHeader } from '@/components/TopHeader';
 import { readFileHeaders } from '@/lib/read-headers';
 import type { AiAnalysisResult, AnomalyItem, ColumnMapping } from '@/lib/types';
@@ -37,6 +38,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { isHealthy } = useServerHealth();
   const { t } = useLang();
+  const { setAiResults: syncAiResults, setAnalysisFailed: syncAnalysisFailed, setDemoMode: syncDemoMode } = useQAStore();
 
   function handleLogout() {
     document.cookie = 'autoqa_auth=; path=/; max-age=0';
@@ -57,11 +59,13 @@ export default function DashboardPage() {
   function handleAiResults(results: Map<string, AiAnalysisResult>) {
     setAiResults(results);
     setAnalysisFailed(results.size === 0);
+    syncAiResults(results);
+    syncAnalysisFailed(results.size === 0);
   }
 
   function handleDemoModeChange(demo: boolean) {
     setIsDemoMode(demo);
-    // demo 모드는 mock 데이터가 있으므로 analysisFailed는 건드리지 않음
+    syncDemoMode(demo);
   }
 
   async function handleNext() {
@@ -87,29 +91,6 @@ export default function DashboardPage() {
     setAiResults(new Map());
     setIsDemoMode(false);
     setAnalysisFailed(false);
-  }
-
-  async function handleRetryItem(item: AnomalyItem) {
-    try {
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ anomalies: [item] }),
-      });
-      const data = await res.json();
-      if (res.ok && !data.is_mock && data.results?.length) {
-        const r = data.results[0] as AiAnalysisResult;
-        const key = `${item.drug_id}__${item.hospital_code}`;
-        setAiResults((prev) => {
-          const next = new Map(prev);
-          next.set(key, r);
-          next.set(r.drug_id, r);
-          return next;
-        });
-      }
-    } catch {
-      // silent fail — user can retry again
-    }
   }
 
   return (
@@ -280,13 +261,7 @@ export default function DashboardPage() {
                         <AnomalyBarChart items={result.items} />
                       </div>
                       <div className="overflow-x-auto">
-                      <AnomalyTable
-                        items={result.items}
-                        aiResults={aiResults}
-                        analysisFailed={analysisFailed}
-                        isMock={isDemoMode}
-                        onRetryItem={handleRetryItem}
-                      />
+                      <AnomalyTable />
                       </div>
                     </TabsContent>
                     <TabsContent value="chart">
