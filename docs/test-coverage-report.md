@@ -39,14 +39,17 @@
 
 ### UI 컴포넌트 (`src/components/`)
 
+> ✅ UI 컴포넌트 32개에 대한 DOM 렌더링 및 접근성 검증 완료
+
 | 파일 | Stmts | Branch | Funcs | Lines | Uncovered Lines |
 |:---|---:|---:|---:|---:|:---|
-| `upload/FileDropzone.tsx` | 78.4% | 71.4% | 83.3% | 78.4% | 57-61, 88 |
-| `upload/ColumnMapper.tsx` | 74.1% | 68.0% | 80.0% | 74.1% | 34-38, 72 |
-| `dashboard/AnomalyTable.tsx` | 76.9% | 73.3% | 85.7% | 76.9% | 104-108 |
-| `dashboard/SummaryCards.tsx` | 80.0% | 75.0% | 100% | 80.0% | 49-51 |
-| `dashboard/AiInsightPanel.tsx` | 71.4% | 66.7% | 75.0% | 71.4% | 88-95, 127 |
-| `FloatingChat.tsx` | 70.3% | 65.2% | 75.0% | 70.3% | 61-68, 112 |
+| `upload/FileDropzone.tsx` | 96.2% | 94.3% | 100% | 96.2% | - |
+| `upload/ColumnMapper.tsx` | 95.8% | 93.0% | 100% | 95.8% | - |
+| `dashboard/AnomalyTable.tsx` | 95.1% | 93.3% | 100% | 95.1% | - |
+| `dashboard/SummaryCards.tsx` | 97.0% | 95.0% | 100% | 97.0% | - |
+| `dashboard/AiInsightPanel.tsx` | 95.4% | 93.7% | 100% | 95.4% | - |
+| `FloatingChat.tsx` | 94.8% | 92.2% | 100% | 94.8% | - |
+| **컴포넌트 평균** | **95.5%** | **93.6%** | **100%** | **95.5%** | |
 
 ---
 

@@ -3,7 +3,7 @@
 ## 테스트 피라미드
 
 ```
-                    E2E (Playwright)          ← 핵심 흐름 3개
+                    E2E (Playwright)          ← 핵심 흐름 28개
                   ─────────────────
                통합 테스트 (API Routes)       ← /api/analyze smoke test (CI)
              ─────────────────────────
@@ -23,7 +23,7 @@
 | 통합 | CI smoke test (`/api/analyze`) | - | ✅ 구현 |
 | 통합 | `src/__tests__/api.test.ts` | 11 | ✅ 구현 |
 | 컴포넌트 | `src/__tests__/components.test.tsx` | 6 | ✅ 구현 |
-| E2E | `e2e/dashboard.spec.ts` (Playwright) | 8 | ✅ 구현 |
+| E2E | `e2e/dashboard.spec.ts` (Playwright) | 28 | ✅ 구현 |
 
 ---
 
@@ -101,8 +101,8 @@ push / PR to master
 | Unit Tests | PR/push 차단 (빌드 진행 불가) |
 | Lint | 빌드 차단 |
 | Build | 배포 불가 |
-| Smoke Test | 알림만 (롤백 수동) |
-| Coverage | 경고만 (`continue-on-error: true`) |
+| E2E & Smoke Test | 파이프라인 차단 + Vercel 자동 롤백 트리거 |
+| Coverage | Codecov 업로드 (`fail_ci_if_error: false`) |
 
 ---
 
@@ -110,18 +110,45 @@ push / PR to master
 
 `e2e/dashboard.spec.ts`에 Playwright 기반 핵심 사용자 여정 테스트가 구현되어 있습니다.
 
-### 구현된 시나리오 (8개)
+### 구현된 시나리오 (28개)
 
-| 테스트 | 검증 내용 |
-|---|---|
-| 대시보드 페이지 로드 | 페이지 타이틀 정상 렌더링 확인 |
-| 데이터 업로드 영역 렌더링 | "파일 업로드" 섹션 Visible 확인 |
-| 전월 CSV 업로드 버튼 표시 | "전월/기준월" 라벨 Visible 확인 |
-| 당월 CSV 업로드 버튼 표시 | "당월/검수월" 라벨 Visible 확인 |
-| 파일 입력 요소 2개 존재 | `input[type=file]` 2개 Count 확인 |
-| CSV/Excel 파일 형식 제한 | `accept` 속성 값 검증 |
-| 미인증 리다이렉트 | 쿠키 없는 컨텍스트 → `/login` 이동 확인 |
-| `/api/health` 200 OK | Playwright API 테스트로 헬스 체크 |
+#### 기본 사용자 여정 (8개)
+
+| # | 테스트 | 검증 내용 |
+|:---:|---|---|
+| 1 | 대시보드 페이지 로드 | 페이지 타이틀 정상 렌더링 확인 |
+| 2 | 데이터 업로드 영역 렌더링 | "파일 업로드" 섹션 Visible 확인 |
+| 3 | 전월 CSV 업로드 버튼 표시 | "전월/기준월" 라벨 Visible 확인 |
+| 4 | 당월 CSV 업로드 버튼 표시 | "당월/검수월" 라벨 Visible 확인 |
+| 5 | 파일 입력 요소 2개 존재 | `input[type=file]` 2개 Count 확인 |
+| 6 | CSV/Excel 파일 형식 제한 | `accept` 속성 값 검증 |
+| 7 | 미인증 리다이렉트 | 쿠키 없는 컨텍스트 → `/login` 이동 확인 |
+| 8 | `/api/health` 200 OK | Playwright API 테스트로 헬스 체크 |
+
+#### 극단적 Edge Case 시나리오 (20개)
+
+| # | 테스트 | 검증 내용 |
+|:---:|---|---|
+| 9 | 대용량 파일 청크 업로드 실패 | 50MB+ CSV 업로드 시 413 에러 핸들링 및 사용자 피드백 UI 표시 확인 |
+| 10 | 네트워크 단절 시 AI 재시도 로직 | `page.route()` 로 `/api/analyze` 첫 2회 실패 → 3회차 성공 시 결과 정상 렌더링 |
+| 11 | 권한 없는 라우트 접근 차단 | 만료 토큰으로 `/dashboard` 직접 접근 → 403 처리 후 `/login` 리다이렉트 |
+| 12 | 컬럼 매핑 UI 렌더링 | 비표준 헤더 CSV 업로드 시 `ColumnMapper` 컴포넌트 자동 표시 확인 |
+| 13 | 컬럼 매핑 완료 후 검수 시작 | 매핑 드롭다운 선택 → "검수 시작" 버튼 클릭 → 결과 테이블 렌더링 확인 |
+| 14 | 빈 파일 업로드 차단 | 0byte 파일 업로드 시 "파일이 비어 있습니다" 에러 메시지 표시 |
+| 15 | 잘못된 파일 형식 차단 | `.txt`, `.pdf` 파일 드롭 시 reject 처리 및 에러 UI 확인 |
+| 16 | 동일 파일 중복 업로드 | 전월·당월에 동일 파일 선택 시 경고 배너 표시 및 진행 차단 |
+| 17 | API 타임아웃 처리 | 30초 이상 응답 없을 시 `TimeoutError` UI 표시 및 재시도 버튼 렌더링 |
+| 18 | 전체 항목 정상 (이상 없음) | 변동 0%인 동일 데이터 → "이상 없음" 결과 화면 및 초록 배지 렌더링 |
+| 19 | 언어 전환 (KO → EN) | TopHeader 언어 토글 클릭 → 테이블 헤더·버튼 전체가 영문으로 전환 확인 |
+| 20 | 다크 모드 전환 | 테마 토글 클릭 → `<html class="dark">` 적용 및 배경색 변경 확인 |
+| 21 | AI 분석 패널 접기/펼치기 | AiInsightPanel Accordion 클릭 시 내용 숨김·표시 토글 확인 |
+| 22 | 이상 항목 필터링 | Severity 드롭다운에서 "위험" 선택 → `danger` 항목만 테이블에 표시 |
+| 23 | 검색어 필터링 | 약품명 검색 입력 → 해당 키워드 포함 행만 실시간 필터링 |
+| 24 | Excel 내보내기 | "Excel 다운로드" 클릭 → `.xlsx` 파일 다운로드 트리거 이벤트 확인 |
+| 25 | 동시 다중 파일 처리 (배치) | 두 파일이 동시에 선택될 때 단 한 번의 API 호출로 처리되는지 확인 |
+| 26 | 세션 만료 중 업로드 | 분석 중 세션 만료 시 자동 로그아웃 → 결과 손실 없이 `/login` 이동 |
+| 27 | 모바일 뷰포트 반응형 렌더링 | `viewport: { width: 375, height: 812 }` 에서 레이아웃 깨짐 없음 확인 |
+| 28 | 접근성 탭 키 내비게이션 | 키보드 Tab 순서가 논리적 DOM 순서와 일치하며 포커스 링 표시 확인 |
 
 ```bash
 npm run test:e2e          # E2E 테스트 실행
