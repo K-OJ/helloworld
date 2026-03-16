@@ -134,7 +134,7 @@ export const useQAStore = create<QAState>((set) => ({
 
   setDemoMode: (demo) => set({ isDemoMode: demo }),
 
-  setStatus: (status, error = null) => set({ status, error }),
+  setStatus: (status, error = undefined) => set({ status, error }),
 
   reset: () => set({ ...initialState, aiResults: new Map() }),
 
