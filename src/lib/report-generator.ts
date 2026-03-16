@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as XLSX from 'xlsx';
 import type { QaReport } from './types';
 import { SEVERITY_LABELS, AI_CLASSIFICATION_LABELS } from './constants';

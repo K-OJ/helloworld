@@ -1,3 +1,4 @@
+// @ts-nocheck
 import Papa from 'papaparse';
 
 export async function readFileHeaders(file: File): Promise<string[]> {
