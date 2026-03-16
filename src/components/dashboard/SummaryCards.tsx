@@ -27,10 +27,10 @@ export function SummaryCards({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-2 text-sm text-gray-500" aria-label={`${prevLabel} ${baselinePeriod} → ${currLabel} ${targetPeriod}`}>
-        <span>{prevLabel}: <strong className="text-gray-700">{baselinePeriod}</strong></span>
+      <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-slate-400" aria-label={`${prevLabel} ${baselinePeriod} → ${currLabel} ${targetPeriod}`}>
+        <span>{prevLabel}: <strong className="text-gray-700 dark:text-slate-200">{baselinePeriod}</strong></span>
         <span aria-hidden="true">→</span>
-        <span>{currLabel}: <strong className="text-gray-700">{targetPeriod}</strong></span>
+        <span>{currLabel}: <strong className="text-gray-700 dark:text-slate-200">{targetPeriod}</strong></span>
       </div>
       <div
         className="grid grid-cols-2 lg:grid-cols-4 gap-4"
@@ -39,37 +39,37 @@ export function SummaryCards({
       >
         <Card aria-label={`${totalLabel} ${total.toLocaleString()}`}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">{totalLabel}</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-500 dark:text-slate-400">{totalLabel}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-gray-900" aria-live="polite">{total.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-gray-900 dark:text-slate-100" aria-live="polite">{total.toLocaleString()}</p>
           </CardContent>
         </Card>
-        <Card className="border-green-200 bg-green-50/50" aria-label={`${normalLabel} ${normal.toLocaleString()}, ${normalPct}%`}>
+        <Card className="border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20" aria-label={`${normalLabel} ${normal.toLocaleString()}, ${normalPct}%`}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-green-600">{normalLabel}</CardTitle>
+            <CardTitle className="text-sm font-medium text-green-600 dark:text-green-400">{normalLabel}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-700" aria-live="polite">{normal.toLocaleString()}</p>
-            <p className="text-xs text-green-500 mt-1" aria-hidden="true">{normalPct}%</p>
+            <p className="text-3xl font-bold text-green-700 dark:text-green-300" aria-live="polite">{normal.toLocaleString()}</p>
+            <p className="text-xs text-green-500 dark:text-green-500 mt-1" aria-hidden="true">{normalPct}%</p>
           </CardContent>
         </Card>
-        <Card className="border-amber-200 bg-amber-50/50" aria-label={`${warningLabel} ${warning.toLocaleString()}, ${warningPct}%`}>
+        <Card className="border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/20" aria-label={`${warningLabel} ${warning.toLocaleString()}, ${warningPct}%`}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-amber-600">{warningLabel}</CardTitle>
+            <CardTitle className="text-sm font-medium text-amber-600 dark:text-amber-400">{warningLabel}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-amber-700" aria-live="polite">{warning.toLocaleString()}</p>
-            <p className="text-xs text-amber-500 mt-1" aria-hidden="true">{warningPct}%</p>
+            <p className="text-3xl font-bold text-amber-700 dark:text-amber-300" aria-live="polite">{warning.toLocaleString()}</p>
+            <p className="text-xs text-amber-500 dark:text-amber-500 mt-1" aria-hidden="true">{warningPct}%</p>
           </CardContent>
         </Card>
-        <Card className="border-red-200 bg-red-50/50" aria-label={`${dangerLabel} ${danger.toLocaleString()}, ${dangerPct}%`}>
+        <Card className="border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20" aria-label={`${dangerLabel} ${danger.toLocaleString()}, ${dangerPct}%`}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-red-600">{dangerLabel}</CardTitle>
+            <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400">{dangerLabel}</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-red-700" aria-live="polite">{danger.toLocaleString()}</p>
-            <p className="text-xs text-red-500 mt-1" aria-hidden="true">{dangerPct}%</p>
+            <p className="text-3xl font-bold text-red-700 dark:text-red-300" aria-live="polite">{danger.toLocaleString()}</p>
+            <p className="text-xs text-red-500 dark:text-red-500 mt-1" aria-hidden="true">{dangerPct}%</p>
           </CardContent>
         </Card>
       </div>

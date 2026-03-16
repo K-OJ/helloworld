@@ -110,9 +110,9 @@ export function AnomalyTable() {
 
   const SortIcon = ({ k }: { k: SortKey }) =>
     sortKey === k ? (
-      <span className="ml-1 text-blue-500">{sortDir === 'desc' ? '▼' : '▲'}</span>
+      <span className="ml-1 text-blue-500 dark:text-blue-400">{sortDir === 'desc' ? '▼' : '▲'}</span>
     ) : (
-      <span className="ml-1 text-gray-300">▼</span>
+      <span className="ml-1 text-gray-300 dark:text-slate-600">▼</span>
     );
 
   return (
@@ -130,10 +130,10 @@ export function AnomalyTable() {
       )}
 
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500 dark:text-slate-400">
           {t.totalCountText.replace('{count}', filtered.length.toLocaleString())}
           {overrides.size > 0 && (
-            <span className="ml-2 text-xs text-blue-600">
+            <span className="ml-2 text-xs text-blue-600 dark:text-blue-400">
               ({t.approvedCount.replace('{n}', String(Array.from(overrides.values()).filter(o => o.status === 'approved').length))} /
               {' '}{t.modifiedCount.replace('{n}', String(Array.from(overrides.values()).filter(o => o.status === 'modified').length))})
             </span>
@@ -167,7 +167,7 @@ export function AnomalyTable() {
       <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
-            <TableRow className="bg-gray-50">
+            <TableRow className="bg-gray-50 dark:bg-slate-800/60">
               <TableHead>{t.colDrugName}</TableHead>
               <TableHead>{t.colHospCode}</TableHead>
               <TableHead className="cursor-pointer" onClick={() => toggleSort('baseline_volume')}>
@@ -208,7 +208,7 @@ export function AnomalyTable() {
                     role="button"
                     aria-expanded={isExpanded}
                     aria-label={`${item.drug_name || item.drug_id} 상세 분석 ${isExpanded ? '접기' : '펼치기'}`}
-                    className={`hover:bg-gray-50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-inset ${isExpanded ? 'bg-blue-50' : ''}`}
+                    className={`hover:bg-gray-50 dark:hover:bg-slate-700/50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-inset ${isExpanded ? 'bg-blue-50 dark:bg-blue-900/20' : ''}`}
                     onClick={() => setExpandedKey(isExpanded ? null : key)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
@@ -218,76 +218,76 @@ export function AnomalyTable() {
                     }}
                   >
                     <TableCell>
-                      <div className="font-medium">{item.drug_name || '-'}</div>
-                      <div className="text-xs text-gray-400">{item.drug_id}</div>
+                      <div className="font-medium dark:text-slate-200">{item.drug_name || '-'}</div>
+                      <div className="text-xs text-gray-400 dark:text-slate-500">{item.drug_id}</div>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-600">{item.hospital_code}</TableCell>
+                    <TableCell className="text-sm text-gray-600 dark:text-slate-400">{item.hospital_code}</TableCell>
                     <TableCell className="text-right">{item.baseline_volume.toLocaleString()}</TableCell>
                     <TableCell className="text-right">{item.target_volume.toLocaleString()}</TableCell>
-                    <TableCell className={`text-right font-semibold ${item.change_pct > 0 ? 'text-red-600' : item.change_pct < 0 ? 'text-blue-600' : 'text-gray-500'}`}>
+                    <TableCell className={`text-right font-semibold ${item.change_pct > 0 ? 'text-red-600 dark:text-red-400' : item.change_pct < 0 ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500 dark:text-slate-400'}`}>
                       {item.change_pct > 0 ? '+' : ''}{item.change_pct.toFixed(1)}%
                     </TableCell>
                     <TableCell>
                       <SeverityBadge severity={item.severity} />
                     </TableCell>
-                    <TableCell className="text-xs text-gray-500 max-w-48">
+                    <TableCell className="text-xs text-gray-500 max-w-48 dark:text-slate-400">
                       {ai ? (
                         <div>
                           {override?.status === 'approved' && (
-                            <span className="inline-block mb-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">{t.approvedBadge}</span>
+                            <span className="inline-block mb-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">{t.approvedBadge}</span>
                           )}
                           {override?.status === 'modified' && (
-                            <span className="inline-block mb-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{t.modifiedBadge}</span>
+                            <span className="inline-block mb-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{t.modifiedBadge}</span>
                           )}
                           <div>
                             {isMock && (
-                              <span className="inline-block mr-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">{t.mockBadge}</span>
+                              <span className="inline-block mr-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{t.mockBadge}</span>
                             )}
                             {override?.status === 'modified' ? (
                               <>
-                                <span className="line-through text-gray-400">{AI_CLASSIFICATION_LABELS[ai.classification]}</span>
-                                <span className="ml-1 font-medium text-amber-700">{AI_CLASSIFICATION_LABELS[effectiveClassification!]}</span>
+                                <span className="line-through text-gray-400 dark:text-slate-500">{AI_CLASSIFICATION_LABELS[ai.classification]}</span>
+                                <span className="ml-1 font-medium text-amber-700 dark:text-amber-300">{AI_CLASSIFICATION_LABELS[effectiveClassification!]}</span>
                               </>
                             ) : (
-                              <span className="font-medium text-gray-700">{AI_CLASSIFICATION_LABELS[ai.classification]}</span>
+                              <span className="font-medium text-gray-700 dark:text-slate-300">{AI_CLASSIFICATION_LABELS[ai.classification]}</span>
                             )}
-                            <span className="ml-1 text-gray-400">({Math.round(ai.confidence * 100)}%)</span>
+                            <span className="ml-1 text-gray-400 dark:text-slate-500">({Math.round(ai.confidence * 100)}%)</span>
                           </div>
-                          <p className="mt-0.5 text-gray-500 line-clamp-1">{ai.explanation}</p>
+                          <p className="mt-0.5 text-gray-500 dark:text-slate-400 line-clamp-1">{ai.explanation}</p>
                           <span className="text-blue-400 text-xs">{isExpanded ? t.collapseLabel : t.expandLabel}</span>
                         </div>
                       ) : analysisFailed && item.severity !== 'normal' ? (
                         <div className="flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
-                          <span className="text-amber-500 text-xs">{t.analysisDelayed}</span>
+                          <span className="text-amber-500 dark:text-amber-400 text-xs">{t.analysisDelayed}</span>
                           <button
-                            className="text-xs text-blue-600 underline hover:text-blue-800"
+                            className="text-xs text-blue-600 underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
                             onClick={() => handleRetryItem(item)}
                           >
                             {t.retryAnalysis}
                           </button>
                         </div>
                       ) : (
-                        <span className="text-gray-300">-</span>
+                        <span className="text-gray-300 dark:text-slate-600">-</span>
                       )}
                     </TableCell>
                   </TableRow>,
                   ...(isExpanded && ai ? [
-                    <TableRow key={`${idx}-expanded`} className="bg-blue-50 border-b border-blue-100">
+                    <TableRow key={`${idx}-expanded`} className="bg-blue-50 border-b border-blue-100 dark:bg-blue-900/20 dark:border-blue-800">
                       <TableCell colSpan={7} className="py-4 px-4">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm mb-4">
                           <div>
-                            <p className="font-medium text-gray-700 mb-1">{t.aiCauseTitle}</p>
-                            <p className="text-gray-600">{ai.explanation}</p>
+                            <p className="font-medium text-gray-700 mb-1 dark:text-slate-300">{t.aiCauseTitle}</p>
+                            <p className="text-gray-600 dark:text-slate-400">{ai.explanation}</p>
                           </div>
                           <div>
-                            <p className="font-medium text-gray-700 mb-1">{t.aiActionTitle}</p>
-                            <p className="text-blue-700 bg-blue-50 rounded p-2 border border-blue-100">{ai.recommended_action}</p>
+                            <p className="font-medium text-gray-700 mb-1 dark:text-slate-300">{t.aiActionTitle}</p>
+                            <p className="text-blue-700 bg-blue-50 rounded p-2 border border-blue-100 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-300">{ai.recommended_action}</p>
                             {ai.action_url && ai.action_label && (
                               <a
                                 href={ai.action_url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
+                                className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors dark:border-blue-700 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <ExternalLink className="h-3 w-3" />
@@ -298,20 +298,20 @@ export function AnomalyTable() {
                         </div>
 
                         {/* Human-in-the-loop 검토 */}
-                        <div className="border-t border-blue-200 pt-3">
-                          <p className="text-xs font-semibold text-gray-600 mb-2">{t.reviewTitle}</p>
+                        <div className="border-t border-blue-200 pt-3 dark:border-blue-800">
+                          <p className="text-xs font-semibold text-gray-600 mb-2 dark:text-slate-400">{t.reviewTitle}</p>
                           {override?.status === 'approved' && (
                             <div className="flex items-center gap-2">
-                              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">{t.approvedMsg}</span>
-                              <button className="text-xs text-gray-400 underline" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>{t.cancelButton}</button>
+                              <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">{t.approvedMsg}</span>
+                              <button className="text-xs text-gray-400 underline dark:text-slate-500" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>{t.cancelButton}</button>
                             </div>
                           )}
                           {override?.status === 'modified' && (
                             <div className="flex items-center gap-2">
-                              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700">
+                              <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
                                 {t.modifiedBadge}: {AI_CLASSIFICATION_LABELS[override.classification]}
                               </span>
-                              <button className="text-xs text-gray-400 underline" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>{t.cancelButton}</button>
+                              <button className="text-xs text-gray-400 underline dark:text-slate-500" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>{t.cancelButton}</button>
                             </div>
                           )}
                           {!override && (
@@ -319,13 +319,13 @@ export function AnomalyTable() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-8 border-green-300 text-green-700 hover:bg-green-50"
+                                className="h-8 border-green-300 text-green-700 hover:bg-green-50 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900/30"
                                 onClick={() => handleApprove(key)}
                               >
                                 {t.approveButton}
                               </Button>
                               <Select onValueChange={(v) => handleModify(key, v as AiClassification)}>
-                                <SelectTrigger className="h-8 w-44 border-amber-300 text-amber-700 text-xs">
+                                <SelectTrigger className="h-8 w-44 border-amber-300 text-amber-700 text-xs dark:border-amber-700 dark:text-amber-300">
                                   <SelectValue placeholder={t.modifyPlaceholder} />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -350,15 +350,15 @@ export function AnomalyTable() {
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 text-sm">
           <button
-            className="px-3 py-1 rounded border disabled:opacity-30"
+            className="px-3 py-1 rounded border disabled:opacity-30 dark:border-slate-600 dark:text-slate-300"
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
           >
             {t.prevPage}
           </button>
-          <span className="text-gray-600">{page} / {totalPages}</span>
+          <span className="text-gray-600 dark:text-slate-400">{page} / {totalPages}</span>
           <button
-            className="px-3 py-1 rounded border disabled:opacity-30"
+            className="px-3 py-1 rounded border disabled:opacity-30 dark:border-slate-600 dark:text-slate-300"
             disabled={page === totalPages}
             onClick={() => setPage((p) => p + 1)}
           >

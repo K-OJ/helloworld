@@ -88,13 +88,13 @@ export function AiInsightPanel({ items, onResults, onDemoModeChange }: AiInsight
   }
 
   return (
-    <div className="rounded-xl border bg-gradient-to-br from-violet-50 to-blue-50 p-5 space-y-4">
+    <div className="rounded-xl border bg-gradient-to-br from-violet-50 to-blue-50 p-5 space-y-4 dark:from-violet-900/20 dark:to-blue-900/20 dark:border-slate-700">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+          <h3 className="font-semibold text-gray-800 flex items-center gap-2 dark:text-slate-200">
             {t.aiAnalysisTitle}
           </h3>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-500 mt-0.5 dark:text-slate-400">
             {t.aiAnalysisDesc.replace('{count}', String(toAnalyze.length))}
           </p>
         </div>
@@ -111,7 +111,7 @@ export function AiInsightPanel({ items, onResults, onDemoModeChange }: AiInsight
       </div>
 
       {status === 'idle' && (
-        <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-500 flex items-start gap-2">
+        <div className="rounded-lg bg-gray-50 border border-gray-200 px-3 py-2 text-xs text-gray-500 flex items-start gap-2 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400">
           <span>🔒</span>
           <span>{t.securityNotice}</span>
         </div>
@@ -120,80 +120,80 @@ export function AiInsightPanel({ items, onResults, onDemoModeChange }: AiInsight
       {status === 'running' && (
         <div className="space-y-2">
           <Progress value={progress} className="h-2" />
-          <p className="text-sm text-gray-500 animate-pulse">{t.aiRunning}</p>
+          <p className="text-sm text-gray-500 animate-pulse dark:text-slate-400">{t.aiRunning}</p>
         </div>
       )}
 
       {status === 'error' && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700">
+        <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300">
           <strong>{t.aiErrorPrefix}</strong> {error}
-          <p className="mt-1 text-xs text-red-500">{t.aiErrorHint}</p>
+          <p className="mt-1 text-xs text-red-500 dark:text-red-400">{t.aiErrorHint}</p>
         </div>
       )}
 
       {status === 'done' && summary && (
         <>
           {isMock && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800 flex items-start gap-2">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800 flex items-start gap-2 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-300">
               <span className="text-base leading-none">⚠️</span>
               <div>
                 <strong>{t.mockBannerTitle}</strong>
-                <p className="mt-0.5 text-amber-700">
+                <p className="mt-0.5 text-amber-700 dark:text-amber-400">
                   {errorDetail ?? 'Anthropic API 크레딧이 부족합니다.'}{' '}
                   <a
                     href="https://console.anthropic.com/settings/billing"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-0.5 font-semibold underline hover:text-amber-900"
+                    className="inline-flex items-center gap-0.5 font-semibold underline hover:text-amber-900 dark:hover:text-amber-200"
                   >
                     {t.mockBannerCharge} <ExternalLink className="h-3 w-3" />
                   </a>
                 </p>
-                <p className="mt-0.5 text-amber-600">{t.mockBannerNote}</p>
+                <p className="mt-0.5 text-amber-600 dark:text-amber-500">{t.mockBannerNote}</p>
               </div>
             </div>
           )}
 
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
             {Object.entries(summary).map(([cls, cnt]) => (
-              <div key={cls} className="rounded-lg bg-white border p-2 text-center">
-                <p className="text-lg font-bold text-gray-800">{cnt}</p>
-                <p className="text-xs text-gray-500">{AI_CLASSIFICATION_LABELS[cls] ?? cls}</p>
+              <div key={cls} className="rounded-lg bg-white border p-2 text-center dark:bg-slate-800 dark:border-slate-700">
+                <p className="text-lg font-bold text-gray-800 dark:text-slate-200">{cnt}</p>
+                <p className="text-xs text-gray-500 dark:text-slate-400">{AI_CLASSIFICATION_LABELS[cls] ?? cls}</p>
               </div>
             ))}
           </div>
 
           {topFindings.length > 0 && (
             <div className="space-y-2">
-              <p className="text-sm font-semibold text-gray-700">
+              <p className="text-sm font-semibold text-gray-700 dark:text-slate-300">
                 {t.topFindingsTitle}
                 {isMock && (
-                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">{t.mockBadge}</span>
+                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">{t.mockBadge}</span>
                 )}
               </p>
               {topFindings.map(({ item, ai }, i) => (
-                <div key={i} className={`rounded-lg border p-3 text-sm ${item.severity === 'danger' ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
+                <div key={i} className={`rounded-lg border p-3 text-sm ${item.severity === 'danger' ? 'bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800' : 'bg-amber-50 border-amber-200 dark:bg-amber-900/20 dark:border-amber-800'}`}>
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium mr-2 ${item.severity === 'danger' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                      <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium mr-2 ${item.severity === 'danger' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'}`}>
                         {item.severity === 'danger' ? t.severityDanger : t.severityWarning}
                       </span>
-                      <span className="font-medium text-gray-800">{item.drug_name || item.drug_id}</span>
-                      <span className="ml-2 text-xs text-gray-500">{item.hospital_code} · {t.changeRateLabel} {item.change_pct > 0 ? '+' : ''}{item.change_pct.toFixed(1)}%</span>
+                      <span className="font-medium text-gray-800 dark:text-slate-200">{item.drug_name || item.drug_id}</span>
+                      <span className="ml-2 text-xs text-gray-500 dark:text-slate-400">{item.hospital_code} · {t.changeRateLabel} {item.change_pct > 0 ? '+' : ''}{item.change_pct.toFixed(1)}%</span>
                     </div>
-                    <span className="shrink-0 text-xs text-gray-500">
+                    <span className="shrink-0 text-xs text-gray-500 dark:text-slate-400">
                       {AI_CLASSIFICATION_LABELS[ai.classification]} · {Math.round(ai.confidence * 100)}%
                     </span>
                   </div>
-                  <p className="mt-1.5 text-gray-600">{ai.explanation}</p>
+                  <p className="mt-1.5 text-gray-600 dark:text-slate-400">{ai.explanation}</p>
                   <div className="mt-2 flex items-center justify-between gap-2 flex-wrap">
-                    <p className="text-blue-700 font-medium">→ {ai.recommended_action}</p>
+                    <p className="text-blue-700 font-medium dark:text-blue-300">→ {ai.recommended_action}</p>
                     {ai.action_url && ai.action_label && (
                       <a
                         href={ai.action_url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors shrink-0"
+                        className="inline-flex items-center gap-1 rounded-md border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors shrink-0 dark:border-blue-700 dark:bg-slate-800 dark:text-blue-300 dark:hover:bg-slate-700"
                       >
                         {ai.action_label} <ExternalLink className="h-3 w-3" />
                       </a>

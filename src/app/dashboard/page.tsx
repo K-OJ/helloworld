@@ -100,22 +100,22 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       {/* Header */}
-      <header className="border-b border-slate-200 bg-white shadow-sm">
+      <header className="border-b border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
         <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-gray-900">{t.appTitle}</h1>
-              <p className="hidden sm:block text-sm text-slate-500">{t.appDesc}</p>
+              <h1 className="text-lg md:text-xl font-bold text-gray-900 dark:text-slate-100">{t.appTitle}</h1>
+              <p className="hidden sm:block text-sm text-slate-500 dark:text-slate-400">{t.appDesc}</p>
             </div>
             <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
               {isDemoMode && (
                 <div
-                  className="hidden sm:flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 cursor-default"
+                  className="hidden sm:flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-700 cursor-default dark:border-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
                   title="API 크레딧 제한으로 인해 현재 AI 분석 결과는 통제된 시나리오(Mock Data) 기반으로 제공됩니다."
                 >
-                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse dark:bg-emerald-400" />
                   {t.demoModeLabel}
                 </div>
               )}
@@ -126,7 +126,7 @@ export default function DashboardPage() {
               )}
               <span
                 title={isHealthy ? '서버 헬스체크 정상' : '서버 상태 확인 중'}
-                className="hidden sm:flex items-center gap-1 text-xs text-slate-400"
+                className="hidden sm:flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500"
               >
                 <span className={`h-2 w-2 rounded-full ${isHealthy ? 'bg-green-400' : 'bg-slate-300'}`} />
                 {isHealthy ? t.healthOk : t.healthChecking}
@@ -144,10 +144,10 @@ export default function DashboardPage() {
 
         {/* Upload Step */}
         {step === 'upload' && (
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5 dark:border-slate-700 dark:bg-slate-800">
             <div>
-              <h2 className="text-lg font-semibold text-gray-800">{t.uploadTitle}</h2>
-              <p className="text-sm text-slate-500 mt-1">{t.uploadDesc}</p>
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-200">{t.uploadTitle}</h2>
+              <p className="text-sm text-slate-500 mt-1 dark:text-slate-400">{t.uploadDesc}</p>
             </div>
             <div className="flex flex-col md:flex-row gap-4">
               <FileDropzone
@@ -169,9 +169,9 @@ export default function DashboardPage() {
               <Button onClick={handleNext} disabled={!baselineFile || !targetFile} className="min-w-32">
                 {t.nextButton}
               </Button>
-              <span className="text-xs text-slate-400">{t.fileHint}</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">{t.fileHint}</span>
             </div>
-            <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-700">
+            <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300">
               <strong>{t.sampleDataLabel}</strong>{' '}
               <a href="/sample-data/baseline-sample.csv" download className="underline">{t.baselineSample}</a>{' '}
               /{' '}
@@ -207,7 +207,7 @@ export default function DashboardPage() {
               <div
                 role="alert"
                 aria-live="assertive"
-                className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700"
+                className="rounded-lg bg-red-50 border border-red-200 p-4 text-sm text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300"
               >
                 <strong>오류:</strong> {error}
               </div>
@@ -217,8 +217,8 @@ export default function DashboardPage() {
               <>
                 {/* Summary */}
                 <motion.div custom={0} variants={fadeUp} initial="hidden" animate="visible"
-                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-800 mb-4">{t.summaryTitle}</h2>
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  <h2 className="text-lg font-semibold text-gray-800 mb-4 dark:text-slate-200">{t.summaryTitle}</h2>
                   <SummaryCards
                     total={result.summary.total}
                     normal={result.summary.normal}
@@ -236,7 +236,7 @@ export default function DashboardPage() {
                 </motion.div>
 
                 {(result.skipped_rows.baseline > 0 || result.skipped_rows.target > 0) && (
-                  <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700">
+                  <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 text-sm text-amber-700 dark:bg-amber-900/20 dark:border-amber-800 dark:text-amber-300">
                     {t.skippedRows.replace('{baseline}', String(result.skipped_rows.baseline)).replace('{target}', String(result.skipped_rows.target))}
                   </div>
                 )}
@@ -252,9 +252,9 @@ export default function DashboardPage() {
 
                 {/* Detail Tabs */}
                 <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible"
-                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-gray-800">{t.detailTitle}</h2>
+                    <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-200">{t.detailTitle}</h2>
                     <ReportDownloadButton uploadResult={result} aiResults={aiResults} />
                   </div>
                   <Tabs defaultValue="table">
@@ -263,7 +263,7 @@ export default function DashboardPage() {
                       <TabsTrigger value="chart">{t.chartView}</TabsTrigger>
                     </TabsList>
                     <TabsContent value="table">
-                      <div className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4 overflow-x-auto">
+                      <div className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4 overflow-x-auto dark:border-slate-700 dark:bg-slate-800/50">
                         <AnomalyBarChart items={result.items} />
                       </div>
                       <div className="overflow-x-auto">
