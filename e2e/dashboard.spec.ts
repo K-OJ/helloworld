@@ -4,7 +4,15 @@ import { test, expect } from '@playwright/test';
 const BASE_URL = process.env.BASE_URL ?? 'http://localhost:3000';
 
 test.describe('대시보드 — 핵심 유저 시나리오', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    // Vercel Deployment Protection 감지 → 보호 중이면 graceful skip
+    await page.goto(`${BASE_URL}/`);
+    const title = await page.title();
+    if (/Login.*Vercel|Vercel.*Login|Vercel.*Protection/i.test(title)) {
+      testInfo.skip(true, 'Vercel Deployment Protection 활성 — VERCEL_BYPASS_SECRET 미설정으로 skip');
+      return;
+    }
+
     // 로그인 쿠키 세팅 (미인증 상태면 /login으로 리다이렉트됨)
     await page.context().addCookies([
       {

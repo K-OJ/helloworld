@@ -74,6 +74,7 @@ jobs:
         run: npm run test:e2e
         env:
           BASE_URL: https://helloworld-3hhd-d5cnblvc8-k-ojs-projects.vercel.app
+          VERCEL_BYPASS_SECRET: ${{ secrets.VERCEL_BYPASS_SECRET }}
 
       - name: Automated Zero-Downtime Rollback
         if: failure()

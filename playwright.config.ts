@@ -16,6 +16,10 @@ export default defineConfig({
     baseURL: process.env.BASE_URL ?? 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
+    // Vercel Deployment Protection 자동 우회 (VERCEL_BYPASS_SECRET 설정 시 활성화)
+    extraHTTPHeaders: process.env.VERCEL_BYPASS_SECRET
+      ? { 'x-vercel-protection-bypass': process.env.VERCEL_BYPASS_SECRET }
+      : {},
   },
 
   projects: [
