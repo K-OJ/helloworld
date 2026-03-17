@@ -14,10 +14,10 @@ import { AnomalyTable } from '@/components/dashboard/AnomalyTable';
 import { AnomalyBarChart } from '@/components/dashboard/AnomalyBarChart';
 import { ChangeChart } from '@/components/dashboard/ChangeChart';
 import { AiInsightPanel } from '@/components/dashboard/AiInsightPanel';
-import { SeverityDonutChart } from '@/components/dashboard/SeverityDonutChart';
 import { HospitalRankChart } from '@/components/dashboard/HospitalRankChart';
 import { VolumeScatterChart } from '@/components/dashboard/VolumeScatterChart';
 import { AiClassificationChart } from '@/components/dashboard/AiClassificationChart';
+import { TopAnomalyCards } from '@/components/dashboard/TopAnomalyCards';
 import { FloatingChat } from '@/components/FloatingChat';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -237,14 +237,6 @@ export default function DashboardPage() {
                     warningLabel={t.statusWarning}
                     dangerLabel={t.statusDanger}
                   />
-                  <div className="mt-4">
-                    <SeverityDonutChart
-                      total={result.summary.total}
-                      normal={result.summary.normal}
-                      warning={result.summary.warning}
-                      danger={result.summary.danger}
-                    />
-                  </div>
                 </motion.div>
 
                 {(result.skipped_rows.baseline > 0 || result.skipped_rows.target > 0) && (
@@ -253,8 +245,16 @@ export default function DashboardPage() {
                   </div>
                 )}
 
+                {/* TOP 5 이상 항목 카드 스트립 */}
+                {result.items.some(i => i.severity !== 'normal') && (
+                  <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible"
+                    className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                    <TopAnomalyCards items={result.items} />
+                  </motion.div>
+                )}
+
                 {/* AI Analysis */}
-                <motion.div custom={1} variants={fadeUp} initial="hidden" animate="visible">
+                <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible">
                   <AiInsightPanel
                     items={result.items}
                     onResults={handleAiResults}
@@ -263,7 +263,7 @@ export default function DashboardPage() {
                 </motion.div>
 
                 {/* Detail Tabs */}
-                <motion.div custom={2} variants={fadeUp} initial="hidden" animate="visible"
+                <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible"
                   className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-700 dark:bg-slate-800">
                   <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-gray-800 dark:text-slate-200">{t.detailTitle}</h2>

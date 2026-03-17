@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { ExternalLink, Save } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
 import type { AnomalyItem, AiAnalysisResult, Severity, AiClassification } from '@/lib/types';
@@ -140,17 +141,28 @@ export function AnomalyTable() {
           )}
         </p>
         <div className="flex items-center gap-2">
-          <Select value={severityFilter} onValueChange={(v) => { setSeverityFilter(v as Severity | 'all'); setPage(1); }}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder={t.filterAll} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t.filterAll}</SelectItem>
-              <SelectItem value="danger">{t.filterDanger}</SelectItem>
-              <SelectItem value="warning">{t.filterWarning}</SelectItem>
-              <SelectItem value="normal">{t.filterNormal}</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Pill filter buttons */}
+          <div className="flex items-center gap-1.5">
+            {([
+              { value: 'all',     label: t.filterAll,     activeClass: 'bg-slate-700 text-white dark:bg-slate-200 dark:text-slate-900' },
+              { value: 'danger',  label: t.filterDanger,  activeClass: 'bg-red-500 text-white' },
+              { value: 'warning', label: t.filterWarning, activeClass: 'bg-amber-500 text-white' },
+              { value: 'normal',  label: t.filterNormal,  activeClass: 'bg-green-500 text-white' },
+            ] as const).map(({ value, label, activeClass }) => (
+              <button
+                key={value}
+                onClick={() => { setSeverityFilter(value); setPage(1); }}
+                className={cn(
+                  'rounded-full px-3 py-1 text-xs font-semibold border transition-all',
+                  severityFilter === value
+                    ? activeClass + ' border-transparent shadow-sm'
+                    : 'bg-white text-gray-500 border-slate-200 hover:border-slate-300 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-600 dark:hover:border-slate-500'
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -201,6 +213,7 @@ export function AnomalyTable() {
               </TableRow>
             ) : (
               pageItems.flatMap((item, idx) => {
+                const globalRank = (page - 1) * PAGE_SIZE + idx + 1;
                 const key = `${item.drug_id}__${item.hospital_code}`;
                 const ai = aiResults.get(key);
                 const override = overrides.get(key);
@@ -227,8 +240,21 @@ export function AnomalyTable() {
                     }}
                   >
                     <TableCell>
-                      <div className="font-medium dark:text-slate-200">{item.drug_name || '-'}</div>
-                      <div className="text-xs text-gray-400 dark:text-slate-500">{item.drug_id}</div>
+                      <div className="flex items-center gap-2">
+                        <span className={cn(
+                          'inline-flex items-center justify-center h-5 w-5 rounded-full text-[10px] font-black shrink-0',
+                          globalRank === 1 ? 'bg-red-500 text-white' :
+                          globalRank === 2 ? 'bg-orange-500 text-white' :
+                          globalRank === 3 ? 'bg-amber-500 text-white' :
+                          'bg-slate-200 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                        )}>
+                          {globalRank}
+                        </span>
+                        <div className="min-w-0">
+                          <div className="font-medium dark:text-slate-200 truncate">{item.drug_name || '-'}</div>
+                          <div className="text-xs text-gray-400 dark:text-slate-500">{item.drug_id}</div>
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className="text-sm text-gray-600 dark:text-slate-400">{item.hospital_code}</TableCell>
                     <TableCell className="text-right">{item.baseline_volume.toLocaleString()}</TableCell>
