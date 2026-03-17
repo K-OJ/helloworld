@@ -14,6 +14,10 @@ import { AnomalyTable } from '@/components/dashboard/AnomalyTable';
 import { AnomalyBarChart } from '@/components/dashboard/AnomalyBarChart';
 import { ChangeChart } from '@/components/dashboard/ChangeChart';
 import { AiInsightPanel } from '@/components/dashboard/AiInsightPanel';
+import { SeverityDonutChart } from '@/components/dashboard/SeverityDonutChart';
+import { HospitalRankChart } from '@/components/dashboard/HospitalRankChart';
+import { VolumeScatterChart } from '@/components/dashboard/VolumeScatterChart';
+import { AiClassificationChart } from '@/components/dashboard/AiClassificationChart';
 import { FloatingChat } from '@/components/FloatingChat';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -233,6 +237,14 @@ export default function DashboardPage() {
                     warningLabel={t.statusWarning}
                     dangerLabel={t.statusDanger}
                   />
+                  <div className="mt-4">
+                    <SeverityDonutChart
+                      total={result.summary.total}
+                      normal={result.summary.normal}
+                      warning={result.summary.warning}
+                      danger={result.summary.danger}
+                    />
+                  </div>
                 </motion.div>
 
                 {(result.skipped_rows.baseline > 0 || result.skipped_rows.target > 0) && (
@@ -266,12 +278,24 @@ export default function DashboardPage() {
                       <div className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4 overflow-x-auto dark:border-slate-700 dark:bg-slate-800/50">
                         <AnomalyBarChart items={result.items} />
                       </div>
-                      <div className="overflow-x-auto">
                       <AnomalyTable />
-                      </div>
                     </TabsContent>
                     <TabsContent value="chart">
-                      <ChangeChart items={result.items} />
+                      <div className="space-y-6">
+                        {/* 병원별 이상 건수 */}
+                        <HospitalRankChart items={result.items} />
+
+                        {/* 처방량 vs 변동률 산포도 */}
+                        <VolumeScatterChart items={result.items} />
+
+                        {/* AI 원인 분류 결과 (AI 분석 완료 시에만 표시) */}
+                        <AiClassificationChart />
+
+                        {/* 변동률 상위 20 가로바 */}
+                        <div className="rounded-xl border bg-white p-5 dark:bg-slate-800 dark:border-slate-700">
+                          <ChangeChart items={result.items} />
+                        </div>
+                      </div>
                     </TabsContent>
                   </Tabs>
                 </motion.div>
