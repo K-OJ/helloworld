@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ExternalLink, Save } from 'lucide-react';
 import { SeverityBadge } from './SeverityBadge';
-import type { AnomalyItem, AiAnalysisResult, Severity, AiClassification } from '@/lib/types';
+import type { AnomalyItem, AiAnalysisResult, Severity, AiClassification, Override } from '@/lib/types';
 import { AI_CLASSIFICATION_LABELS } from '@/lib/constants';
 import { useLang } from '@/hooks/useLang';
 import { useQAStore } from '@/store/useQAStore';
@@ -30,13 +30,15 @@ export function AnomalyTable() {
   const analysisFailed = useQAStore((s) => s.analysisFailed);
   const isMock = useQAStore((s) => s.isDemoMode);
   const updateAiResult = useQAStore((s) => s.updateAiResult);
+  const overrides = useQAStore((s) => s.overrides);
+  const setOverride = useQAStore((s) => s.setOverride);
+  const removeOverride = useQAStore((s) => s.removeOverride);
 
   const [severityFilter, setSeverityFilter] = useState<Severity | 'all'>('all');
   const [sortKey, setSortKey] = useState<SortKey>('absolute_change');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [page, setPage] = useState(1);
   const [expandedKey, setExpandedKey] = useState<string | null>(null);
-  const [overrides, setOverrides] = useState<Map<string, Override>>(new Map());
   const [saveToast, setSaveToast] = useState(false);
 
   // 저장된 필터 뷰 복원
@@ -102,11 +104,11 @@ export function AnomalyTable() {
   }
 
   function handleApprove(key: string) {
-    setOverrides((prev) => new Map(prev).set(key, { status: 'approved' }));
+    setOverride(key, { status: 'approved' });
   }
 
   function handleModify(key: string, classification: AiClassification) {
-    setOverrides((prev) => new Map(prev).set(key, { status: 'modified', classification }));
+    setOverride(key, { status: 'modified', classification });
   }
 
   const SortIcon = ({ k }: { k: SortKey }) =>
@@ -369,7 +371,7 @@ export function AnomalyTable() {
                             {override?.status === 'approved' && (
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700 dark:bg-green-900/30 dark:text-green-300">{t.approvedMsg}</span>
-                                <button className="text-xs text-gray-400 underline hover:text-gray-600 dark:text-slate-500" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>{t.cancelButton}</button>
+                                <button className="text-xs text-gray-400 underline hover:text-gray-600 dark:text-slate-500" onClick={(e) => { e.stopPropagation(); removeOverride(key); }}>{t.cancelButton}</button>
                               </div>
                             )}
                             {override?.status === 'modified' && (
@@ -377,7 +379,7 @@ export function AnomalyTable() {
                                 <span className="rounded-full bg-amber-100 px-3 py-1 text-sm font-medium text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
                                   {t.modifiedBadge}: {AI_CLASSIFICATION_LABELS[override.classification]}
                                 </span>
-                                <button className="text-xs text-gray-400 underline hover:text-gray-600 dark:text-slate-500" onClick={(e) => { e.stopPropagation(); setOverrides(prev => { const m = new Map(prev); m.delete(key); return m; }); }}>{t.cancelButton}</button>
+                                <button className="text-xs text-gray-400 underline hover:text-gray-600 dark:text-slate-500" onClick={(e) => { e.stopPropagation(); removeOverride(key); }}>{t.cancelButton}</button>
                               </div>
                             )}
                             {!override && (

@@ -18,6 +18,7 @@ import { HospitalRankChart } from '@/components/dashboard/HospitalRankChart';
 import { VolumeScatterChart } from '@/components/dashboard/VolumeScatterChart';
 import { AiClassificationChart } from '@/components/dashboard/AiClassificationChart';
 import { TopAnomalyCards } from '@/components/dashboard/TopAnomalyCards';
+import { MonitoringPanel } from '@/components/dashboard/MonitoringPanel';
 import { FloatingChat } from '@/components/FloatingChat';
 import { ReportDownloadButton } from '@/components/report/ReportDownloadButton';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -273,6 +274,7 @@ export default function DashboardPage() {
                     <TabsList className="mb-4">
                       <TabsTrigger value="table">{t.tableView}</TabsTrigger>
                       <TabsTrigger value="chart">{t.chartView}</TabsTrigger>
+                      <TabsTrigger value="monitoring">검수 모니터링</TabsTrigger>
                     </TabsList>
                     <TabsContent value="table">
                       <div className="mb-6 rounded-xl border border-slate-100 bg-slate-50 p-4 overflow-x-auto dark:border-slate-700 dark:bg-slate-800/50">
@@ -282,20 +284,16 @@ export default function DashboardPage() {
                     </TabsContent>
                     <TabsContent value="chart">
                       <div className="space-y-6">
-                        {/* 병원별 이상 건수 */}
                         <HospitalRankChart items={result.items} />
-
-                        {/* 처방량 vs 변동률 산포도 */}
                         <VolumeScatterChart items={result.items} />
-
-                        {/* AI 원인 분류 결과 (AI 분석 완료 시에만 표시) */}
                         <AiClassificationChart />
-
-                        {/* 변동률 상위 20 가로바 */}
                         <div className="rounded-xl border bg-white p-5 dark:bg-slate-800 dark:border-slate-700">
                           <ChangeChart items={result.items} />
                         </div>
                       </div>
+                    </TabsContent>
+                    <TabsContent value="monitoring">
+                      <MonitoringPanel />
                     </TabsContent>
                   </Tabs>
                 </motion.div>

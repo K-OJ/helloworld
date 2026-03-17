@@ -30,6 +30,10 @@ export type AiClassification =
   | 'policy_change'
   | 'unknown';
 
+export type Override =
+  | { status: 'approved' }
+  | { status: 'modified'; classification: AiClassification };
+
 export interface AiAnalysisResult {
   drug_id: string;
   drug_name: string;
