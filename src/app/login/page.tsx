@@ -6,8 +6,8 @@ import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [userId, setUserId] = useState('');
-  const [password, setPassword] = useState('');
+  const [userId, setUserId] = useState('test');
+  const [password, setPassword] = useState('test');
   const [saveId, setSaveId] = useState(false);
   const [error, setError] = useState('');
 
@@ -28,13 +28,23 @@ export default function LoginPage() {
   return (
     <div className="relative min-h-screen bg-slate-50 flex flex-col md:flex-row overflow-hidden">
 
+      {/* 임시계정 안내 배너 */}
+      <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-center gap-3 bg-gradient-to-r from-amber-400 to-orange-400 px-4 py-2.5 shadow-md">
+        <span className="text-base">🔑</span>
+        <p className="text-sm font-semibold text-white drop-shadow-sm">
+          임시계정으로 로그인합니다. &nbsp;
+          <span className="font-black underline underline-offset-2">로그인 버튼을 눌러서 로그인하세요.</span>
+        </p>
+        <span className="animate-bounce text-white text-base">👇</span>
+      </div>
+
       {/* 배경 블롭 장식 */}
       <div className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full bg-blue-300 opacity-20 blur-3xl" />
       <div className="pointer-events-none absolute top-1/2 left-1/4 h-72 w-72 rounded-full bg-indigo-300 opacity-15 blur-3xl" />
       <div className="pointer-events-none absolute bottom-10 left-16 h-56 w-56 rounded-full bg-sky-200 opacity-20 blur-3xl" />
 
       {/* 좌측: 브랜딩 */}
-      <div className="relative flex w-full flex-col justify-center px-12 py-16 md:w-1/2 md:px-20">
+      <div className="relative flex w-full flex-col justify-center px-12 pt-24 pb-16 md:w-1/2 md:px-20">
         <div className="max-w-md">
           <p className="mb-2 text-sm font-medium tracking-widest text-blue-500 uppercase">
             Data QA Platform
@@ -67,7 +77,7 @@ export default function LoginPage() {
       </div>
 
       {/* 우측: 로그인 폼 */}
-      <div className="flex w-full items-center justify-center px-6 py-16 md:w-1/2 md:px-12">
+      <div className="flex w-full items-center justify-center px-6 pt-20 pb-16 md:w-1/2 md:px-12">
         <div className="w-full max-w-md rounded-2xl bg-white p-10 shadow-2xl">
 
           {/* 카드 상단 */}

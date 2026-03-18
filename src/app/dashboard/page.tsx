@@ -95,6 +95,16 @@ export default function DashboardPage() {
     setStep('upload');
   }
 
+  async function handleLoadSample() {
+    const [baselineRes, targetRes] = await Promise.all([
+      fetch('/sample-data/baseline-sample.csv'),
+      fetch('/sample-data/target-sample.csv'),
+    ]);
+    const [baselineBlob, targetBlob] = await Promise.all([baselineRes.blob(), targetRes.blob()]);
+    setBaselineFile(new File([baselineBlob], 'baseline-sample.csv', { type: 'text/csv' }));
+    setTargetFile(new File([targetBlob], 'target-sample.csv', { type: 'text/csv' }));
+  }
+
   function handleReset() {
     reset();
     setStep('upload');
@@ -176,11 +186,19 @@ export default function DashboardPage() {
               </Button>
               <span className="text-xs text-slate-400 dark:text-slate-500">{t.fileHint}</span>
             </div>
-            <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300">
-              <strong>{t.sampleDataLabel}</strong>{' '}
-              <a href="/sample-data/baseline-sample.csv" download className="underline">{t.baselineSample}</a>{' '}
-              /{' '}
-              <a href="/sample-data/target-sample.csv" download className="underline">{t.targetSample}</a>
+            <div className="rounded-lg bg-blue-50 border border-blue-100 p-3 text-xs text-blue-700 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-300 flex items-center justify-between gap-3 flex-wrap">
+              <div>
+                <strong>{t.sampleDataLabel}</strong>{' '}
+                <a href="/sample-data/baseline-sample.csv" download className="underline">{t.baselineSample}</a>{' '}
+                /{' '}
+                <a href="/sample-data/target-sample.csv" download className="underline">{t.targetSample}</a>
+              </div>
+              <button
+                onClick={handleLoadSample}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 active:bg-blue-800 px-4 py-1.5 text-xs font-bold text-white transition-colors shadow-sm shrink-0"
+              >
+                ⚡ 샘플 데이터로 입력
+              </button>
             </div>
           </div>
         )}
