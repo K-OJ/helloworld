@@ -35,10 +35,10 @@ export async function POST(req: NextRequest) {
   // 각 항목 필수 필드 검증
   for (let i = 0; i < anomalies.length; i++) {
     const item = anomalies[i] as Partial<AnomalyItem>;
-    if (!item.drug_id || !item.hospital_code || item.baseline_volume === undefined || item.target_volume === undefined) {
+    if (item.baseline_volume === undefined || item.target_volume === undefined) {
       console.error(`[analyze] 입력 검증 실패: anomalies[${i}] 필수 필드 누락`, item);
       return NextResponse.json(
-        { error: `anomalies[${i}]에 필수 필드(drug_id, hospital_code, baseline_volume, target_volume)가 없습니다.` },
+        { error: `anomalies[${i}]에 필수 필드(baseline_volume, target_volume)가 없습니다.` },
         { status: 400 }
       );
     }

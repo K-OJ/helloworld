@@ -12,9 +12,9 @@ interface FieldDef {
 }
 
 const FIELDS: FieldDef[] = [
-  { key: 'drug_id', label: '약품 코드', required: true },
+  { key: 'drug_id', label: '약품 코드', required: false },
   { key: 'drug_name', label: '약품명', required: false },
-  { key: 'hospital_code', label: '병원 코드', required: true },
+  { key: 'hospital_code', label: '병원 코드', required: false },
   { key: 'prescription_volume', label: '처방량', required: true },
   { key: 'date', label: '날짜 / 기준년월', required: false },
 ];
@@ -132,7 +132,9 @@ export function ColumnMapper({ headers, onConfirm, onBack }: Props) {
         })}
       </div>
 
-      <p className="text-xs text-gray-400">* 표시 필드는 필수입니다.</p>
+      <p className="text-xs text-gray-400">
+        * 처방량은 필수입니다. 약품 코드·병원 코드를 선택하지 않으면 해당 컬럼을 제외하고 비교합니다.
+      </p>
 
       <div className="flex gap-3">
         <Button variant="outline" onClick={onBack}>

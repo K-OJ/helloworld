@@ -17,10 +17,18 @@ interface AggregatedEntry {
  * @param records - 파싱된 처방 레코드 배열
  * @returns 복합 키를 기준으로 집계된 Map
  */
+// 선택된 필드만 키에 포함 (미선택 시 빈 문자열 → 해당 컬럼 제외)
+function makeKey(r: PrescriptionRecord): string {
+  const parts: string[] = [];
+  if (r.drug_id)       parts.push(`d:${r.drug_id}`);
+  if (r.hospital_code) parts.push(`h:${r.hospital_code}`);
+  return parts.length > 0 ? parts.join('__') : 'all';
+}
+
 function aggregateByKey(records: PrescriptionRecord[]): Map<string, AggregatedEntry> {
   const map = new Map<string, AggregatedEntry>();
   for (const r of records) {
-    const key = `${r.drug_id}__${r.hospital_code}`;
+    const key = makeKey(r);
     const existing = map.get(key);
     if (existing) {
       existing.volume += r.prescription_volume;

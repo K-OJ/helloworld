@@ -81,8 +81,13 @@ export default function DashboardPage() {
 
   async function handleNext() {
     if (!baselineFile) return;
-    const h = await readFileHeaders(baselineFile);
-    setHeaders(h);
+    const [h1, h2] = await Promise.all([
+      readFileHeaders(baselineFile),
+      targetFile ? readFileHeaders(targetFile) : Promise.resolve([]),
+    ]);
+    // 두 파일의 컬럼을 합쳐서 중복 제거
+    const merged = Array.from(new Set([...h1, ...h2]));
+    setHeaders(merged);
     setStep('mapping');
   }
 

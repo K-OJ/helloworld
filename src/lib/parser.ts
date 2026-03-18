@@ -31,7 +31,7 @@ function normalizeRow(row: Record<string, unknown>, mapping?: ColumnMapping): Pr
     date = String(normalized['date'] ?? '').trim();
   }
 
-  if (!drug_id || !hospital_code) return null;
+  // drug_id, hospital_code는 선택 필드 — 빈 값 허용
 
   const prescription_volume = Number(raw_volume);
   if (isNaN(prescription_volume)) return null;
